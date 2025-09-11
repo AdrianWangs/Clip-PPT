@@ -1,0 +1,26 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Slidev PPT Template Guide
+
+## Overview
+Use [temp/slides2.md](mdc:temp/slides2.md) as the template for generating presentations. All new presentations should follow this structure but be created in [slides.md](mdc:slides.md) in the root directory.
+
+## Template Features
+The template includes:
+- Theme settings (seriph)
+- Background image configuration
+- Title and metadata setup
+- Slide transitions
+- Various layouts (section, two-cols-header, TwoRowSplit)
+- Image integration
+- Proper formatting for text and headings
+
+## Usage Guidelines
+1. New presentations should maintain the same structure and layout types
+2. Update the title, team information, and content as needed
+3. Keep the same transition and theme settings
+4. Place all new slide images in `/image/slides/` directory
+5. All final presentations should be saved in the root `slides.md` file, not in the temp directory

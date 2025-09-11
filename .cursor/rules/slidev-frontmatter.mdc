@@ -1,0 +1,38 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Slidev Frontmatter Configuration Guide
+
+## Required Frontmatter
+When creating a presentation in [slides.md](mdc:slides.md), include these essential frontmatter configurations from [temp/slides2.md](mdc:temp/slides2.md):
+
+```yaml
+---
+theme: seriph
+background: /image/slides/image.png
+title: Your Presentation Title
+info: |
+  ## Slidev Starter Template
+  Presentation slides for developers.
+class: text-center
+drawings:
+  persist: false
+transition: slide-left
+mdc: true
+highlighter: shiki
+lineNumbers: false
+---
+```
+
+## Key Configuration Elements
+- `theme`: Use 'seriph' theme for consistent styling
+- `background`: Set slide background image (stored in /image/slides/)
+- `title`: Update with your specific presentation title
+- `class`: Maintain text-center for title slide
+- `transition`: Keep slide-left for smooth transitions
+- `mdc`: Enable Markdown Components syntax
+
+## Remember
+This frontmatter should be at the top of [slides.md](mdc:slides.md) with proper configuration for your specific presentation topic.
