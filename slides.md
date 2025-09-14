@@ -126,92 +126,73 @@ layout: section
 
 # 2. 核心方法：CLIP模型
 
----
+--- 
 layout: default
 ---
 
-## CLIP vs. 传统CNN模型：范式革命
+## CLIP vs. 传统CNN模型
 
 <div class="grid grid-cols-2 gap-8">
   <div>
-    <h3 class="text-center mb-4 text-blue-600">传统CNN模型</h3>
+    <h3 class="mb-4 text-blue-600">传统CNN模型(ResNet)</h3>
     <ul class="text-sm space-y-2">
-      <li><strong>固定标签预测</strong>：预训练在ImageNet的1000个固定类别</li>
-      <li><strong>迁移学习</strong>：需要fine-tune整个网络或替换分类头</li>
-      <li><strong>零样本能力</strong>：无法识别训练时未见过的类别</li>
-      <li><strong>单模态</strong>：只能处理图像，无法理解文本描述</li>
+      <li><strong>范式</strong>: 固定标签预测 `P(y|x)`</li>
+      <li><strong>词汇表</strong>: 固定 (e.g., ImageNet 1000类)</li>
+      <li><strong>泛化</strong>: 迁移学习需Fine-tune，无零样本能力</li>
+      <li><strong>模态</strong>: 单模态 (仅图像)</li>
+      <li><strong>成本</strong>: 新任务/类别需要重新标注和训练，成本高</li>
     </ul>
+
+<br>
+
+1.  **输入**: 一张狗的图片
+2.  **任务**: 从1000个预设类别中选一个最相关的
+3.  **输出**: `P("金毛犬")=0.85`, `P("拉布拉多")=0.1`, ...
+> 1. 无法识别“柯基” (如果不在1000类中)
+> 2. 无法理解“一只在草地上奔跑的狗”这种复杂描述
+
   </div>
   <div>
-    <h3 class="text-center mb-4 text-green-600">CLIP模型</h3>
+    <h3 class="mb-4 text-green-600">CLIP模型</h3>
     <ul class="text-sm space-y-2">
-      <li><strong>图文匹配学习</strong>：学习图像和文本的语义对应关系</li>
-      <li><strong>即插即用</strong>：无需fine-tune，直接zero-shot推理</li>
-      <li><strong>开放词汇</strong>：可以识别任意自然语言描述的概念</li>
-      <li><strong>多模态融合</strong>：天然支持图文跨模态理解</li>
+      <li><strong>范式</strong>: 图文匹配 `Sim(image, text)`</li>
+      <li><strong>词汇表</strong>: 开放，任意自然语言描述</li>
+      <li><strong>泛化</strong>: Zero-shot推理，无需Fine-tune</li>
+      <li><strong>模态</strong>: 多模态 (图文)</li>
+      <li><strong>成本</strong>: 零样本泛化，无需额外训练</li>
     </ul>
+
+<br>
+
+1.  **输入**: 一张狗的图片 + 文本描述:
+  <br>
+  `["一只小狗躺在草地上沐浴阳光"]`
+2.  **任务**: 计算图片与每个描述的相似度
+3.  **输出**: `Sim(图, "一只狗")` 最高
+> 1. **开放词汇**: 可以换成任意描述，如 `["一条柯基犬", "一只牧羊犬"]`
+> 2. **语义理解**: 能识别“一只在草地上奔跑的狗”
+
   </div>
 </div>
 
-<div class="flex justify-center mt-6">
-  <img src="https://cdn-mineru.openxlab.org.cn/result/2025-08-18/e789f79d-0783-438a-9410-da159951aeda/29b20c8616a19cf02e21d1dfcad2cad2fa7e0b25aa51329ec499cd8a5ae70c32.jpg" alt="Figure 1: Summary of CLIP's approach" class="w-10/14">
-</div>
 
 <!--
-现在我们来看看CLIP模型和传统CNN模型的根本区别。传统的CNN模型，比如在ImageNet上训练的ResNet，它们的设计思路是预测固定的1000个类别标签。这就导致了几个问题：首先，它们无法识别训练时没见过的新类别；其次，每次遇到新任务都需要重新设计分类头或进行fine-tune；最重要的是，它们是单模态的，无法理解自然语言描述。而CLIP采用了完全不同的思路：它不预测固定标签，而是学习图像和文本描述的匹配关系。这让它能够理解开放词汇，实现零样本识别，并且天然支持多模态理解。这是一个真正的范式革命。
+大家好，我们来看看CLIP模型和传统CNN模型的根本区别。传统的CNN模型，比如在ImageNet上训练的ResNet，它们的设计思路是预测固定的1000个类别标签。这就导致了几个问题：首先，它们无法识别训练时没见过的新类别；其次，每次遇到新任务都需要重新设计分类头或进行fine-tune；最重要的是，它们是单模态的，无法理解自然语言描述。
+
+而CLIP采用了完全不同的思路：它不预测固定标签，而是学习图像和文本描述的匹配关系。这里我要重点讲解CLIP的方法论创新。CLIP最核心的创新在于将传统的多类别分类问题转化为了图文匹配问题。传统模型学习的是在固定词汇表上的分类，而CLIP学习的是开放域的图文语义对应关系。这个转换看似简单，但带来了革命性的变化。这让它能够理解开放词汇，实现零样本识别，并且天然支持多模态理解。这是一个真正的范式革命。
+
+为了让大家更直观地理解这个范式革命，我们来举一个简单的例子：识别一张狗的图片。
+
+对于传统的CNN模型，比如ResNet，它的任务是在预先设定的1000个类别里做选择题。你给它一张图，它会告诉你这张图最可能是“金毛犬”的概率是85%，是“拉布拉多”的概率是10%。但如果“柯基”这个类别不在它的知识库里，它就完全不认识。更别说理解“一只在草地上奔跑的狗”这种复杂描述了。
+
+而CLIP完全不同。它做的是匹配题。你给它一张图，同时给它几个文本描述，比如“一只猫”、“一只鸟”、“一只狗”。它会告诉你，这张图和“一只狗”这个描述最匹配。它的强大之处在于，这些文本描述可以是任意的，你可以问它更具体的问题，比如“这是一条柯基犬吗？”，或者“这是一只在草地上奔跑的狗吗？”。CLIP都能理解，并给出正确的匹配。这就是零样本学习的威力，也是它和传统模型最根本的区别。
 -->
 
 ---
 layout: default
 ---
 
-## CLIP方法论核心：范式转换
-
-### 🧠 从分类到匹配的革命性转换
-
-**传统视觉模型的问题**：
-- 预测固定的N个类别 → `P(y|x)` 其中 `y ∈ {1,2,...,N}`
-- 新类别 = 重新训练 = 高成本
-
-**CLIP的解决方案**：
-- 不预测类别，而是学习**图文语义相似度** → `Sim(image, text)`
-- 将分类问题转化为**相似度排序问题**
-
-### 🎯 核心优势对比
-
-<div class="grid grid-cols-2 gap-6 mt-6">
-  <div class="bg-red-50 p-4 rounded-lg">
-    <h4 class="font-bold text-red-700 mb-3">传统分类模型</h4>
-    <ul class="text-sm space-y-2">
-      <li>• 固定词汇表：1000个ImageNet类别</li>
-      <li>• 硬编码分类器：最后一层全连接</li>
-      <li>• 封闭集合：无法处理新概念</li>
-      <li>• 重训练成本：新任务需要新数据</li>
-    </ul>
-  </div>
-  
-  <div class="bg-green-50 p-4 rounded-lg">
-    <h4 class="font-bold text-green-700 mb-3">CLIP匹配模型</h4>
-    <ul class="text-sm space-y-2">
-      <li>• 开放词汇：任意自然语言描述</li>
-      <li>• 语义匹配：相似度计算替代分类</li>
-      <li>• 开放集合：理解未见过的概念</li>
-      <li>• 零样本泛化：无需额外训练数据</li>
-    </ul>
-  </div>
-</div>
-
-<!--
-这里我要重点讲解CLIP的方法论创新。CLIP最核心的创新在于将传统的多类别分类问题转化为了图文匹配问题。传统模型学习的是在固定词汇表上的分类，而CLIP学习的是开放域的图文语义对应关系。这个转换看似简单，但带来了革命性的变化。
--->
-
----
-layout: default
----
-
-## 数学原理：对比学习目标函数
-
-### 📐 核心算法流程
+## 核心算法流程
 
 给定一个批次的N个图文对 `{(I₁,T₁), (I₂,T₂), ..., (Iₙ,Tₙ)}`：
 
@@ -230,6 +211,10 @@ layout: default
 - **正样本**：对角线元素 `S[i,i]` (N个匹配对)
 - **负样本**：非对角线元素 `S[i,j], i≠j` (N²-N个不匹配对)
 - **目标**：最大化正样本相似度，最小化负样本相似度
+
+<div class="flex justify-center mt-6">
+  <img src="https://cdn-mineru.openxlab.org.cn/result/2025-08-18/e789f79d-0783-438a-9410-da159951aeda/29b20c8616a19cf02e21d1dfcad2cad2fa7e0b25aa51329ec499cd8a5ae70c32.jpg" alt="Figure 1: Summary of CLIP's approach" class="w-10/14">
+</div>
 
 <!--
 这就是CLIP的数学核心。通过将图像和文本投影到同一个嵌入空间，并使用对比损失函数，模型学会了将语义相关的图文对在高维空间中拉近，将不相关的推远。这种简单而优雅的设计，为CLIP的强大零样本能力奠定了数学基础。
