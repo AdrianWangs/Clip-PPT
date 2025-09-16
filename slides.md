@@ -401,95 +401,36 @@ $$
 -->
 
 ---
-layout: two-cols-header  
----
-
-## Zero-Shot推理机制：从训练到应用
-
-::left::
-
-### 🚀 推理过程详解
-
-**步骤1：准备候选标签**
-```python
-# 传统CNN：固定1000个ImageNet类别
-labels = ["dog", "cat", "car", ...]
-
-# CLIP：任意自然语言描述
-text_queries = [
-    "A photo of a dog",
-    "A cat sitting on a chair", 
-    "A red sports car"
-]
-```
-
-**步骤2：计算相似度**
-```python
-# 编码图像
-image_embed = image_encoder(image)
-
-# 编码所有候选文本
-text_embeds = text_encoder(text_queries)
-
-# 计算相似度分数
-similarities = cosine_similarity(image_embed, text_embeds)
-```
-
-**步骤3：选择最佳匹配**
-```python
-best_match = argmax(similarities)
-```
-
-::right::
-
-### ⚖️ 与传统CNN的根本区别
-
-<div class="space-y-4">
-  <div class="bg-red-50 p-3 rounded">
-    <h4 class="font-bold text-red-700">传统CNN分类</h4>
-    <ul class="text-sm mt-2">
-      <li>• 固定的softmax分类头</li>
-      <li>• 新类别需要重新训练</li>
-      <li>• 只能输出概率分布</li>
-    </ul>
-  </div>
-  
-  <div class="bg-green-50 p-3 rounded">
-    <h4 class="font-bold text-green-700">CLIP相似度匹配</h4>
-    <ul class="text-sm mt-2">
-      <li>• 开放域文本作为"动态标签"</li>
-      <li>• 无需重新训练</li>
-      <li>• 输出语义相似度分数</li>
-    </ul>
-  </div>
-</div>
-
-**🎯 核心优势**：
-- **无限扩展**：支持任意新概念
-- **细粒度描述**：不局限于单词标签
-- **上下文理解**：理解复杂场景描述
-
-<!--
-这里要重点强调CLIP的推理机制与传统CNN的根本不同。传统CNN在推理时只能在预训练的固定类别中选择，而CLIP可以接受任意的自然语言描述作为"动态标签"。这种设计让CLIP具有了无限的扩展能力，这正是zero-shot学习的精髓所在。
--->
-
----
 layout: two-cols-header
 ---
 
-## 关键技术：对比学习的深度解析
+## 为什么选择对比学习？
 
 ::left::
 
-### 为什么选择对比学习？
+
 对比学习的训练效率比传统的图像描述生成（Image Captioning）任务高得多。如右图所示，CLIP（绿色）的学习效率比预测词袋（橙色）的方法快4倍，比生成完整句子（蓝色）的方法快近12倍。
+
+- 计算更高效：无需自回归解码器，吞吐量高，易用大 batch 训练
+- 泛化更出色：直接优化相似度，天然支持零样本与提示学习
+- 数据更易得：网页图文对即可，领域迁移更稳
 
 ::right::
 
 ![Figure 2: Training Efficiency Comparison](https://cdn-mineru.openxlab.org.cn/result/2025-08-18/e789f79d-0783-438a-9410-da159951aeda/2a720f1bf0ffbb8263f721a05c61159b14512e05d24cc9c35d15ff9222dd50ba.jpg)
+<div class="text-xs text-gray-500">Figure 2: 训练效率对比（CLIP vs BoW vs Captioning）</div>
 
 <!--
-CLIP实现图文匹配的关键技术，就是对比学习。我们来看一下它的训练过程。在一个批次里，假设我们有N对匹配的图文。模型会计算出这N张图片和N段文本的所有组合，得到一个N乘N的相似度矩阵。在这个矩阵里，对角线上的元素代表了正确的图文对，也就是正样本，我们希望它们的相似度尽可能高。而矩阵里所有其他位置的元素，都代表了不匹配的图文对，也就是负样本，我们希望它们的相似度尽可能低。通过优化这个目标，模型就学会了如何将语义相关的图文关联起来。为什么选择对比学习呢？右图的实验表明，对比学习的训练效率非常高。相比于传统的、让模型生成图像描述的训练方式，CLIP的效率要高出4到12倍。
+这页我想回答一个问题：为什么我们最终选择了“对比学习”，而不是传统的图像描述生成任务？
+
+先看右图，绿色的 CLIP 曲线明显比另外两条快。这背后有三个核心原因。
+
+首先是，计算路径更短。我们不再用解码器逐词生成，只需两侧编码、做一次相似度与 softmax。这样显著提升了吞吐，适合用更大的 batch 与更多的数据，工程上更容易做线性扩展。
+
+其次，泛化能力更强。优化的是“语义相似度”，而不是特定的文字表述，模型学到的是跨模态的对齐关系。这直接带来零样本与提示学习的能力，迁移到新任务、新领域时更可靠。
+
+从数据角度看，对比学习还能更好地利用网页图文对，虽然有噪声，但规模巨大，实际效果往往胜过小而精的标注集。而网页图文对数据很容易可以通过爬虫得到
+
 -->
 
 ---
@@ -501,25 +442,22 @@ layout: two-cols-header
 ::left::
 
 ```python
-# I[n, h, w, c] - minibatch of aligned images
-# T[n, l]       - minibatch of aligned texts
+# 提取多模态的特征
+I_f = image_encoder(I) #[n, d_i]
+T_f = text_encoder(T) #[n, d_t]
 
-# Extract feature representations of each modality
-I_f = image_encoder(I)  # [n, d_i]
-T_f = text_encoder(T)   # [n, d_t]
-
-# Joint multimodal embedding
+# 多模态特征向特征空间的映射
 I_e = l2_normalize(np.dot(I_f, W_i), axis=1)
 T_e = l2_normalize(np.dot(T_f, W_t), axis=1)
 
-# Scaled pairwise cosine similarities [n, n]
+# 计算余弦相似度
 logits = np.dot(I_e, T_e.T) * np.exp(t)
 
-# Symmetric loss function
+# 构建损失函数
 labels = np.arange(n)
 loss_i = cross_entropy_loss(logits, labels, axis=0)
-loss_t = cross_entropy_loss(logits, labels, axis=1)
-loss = (loss_i + loss_t) / 2
+loss_t  = cross_entropy_loss(logits, labels, axis=1)
+loss = (loss_i + loss_t)/2
 ```
 <div class="text-xs text-gray-500">
 Figure 3: 论文中CLIP核心实现的伪代码
