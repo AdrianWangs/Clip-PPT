@@ -140,8 +140,8 @@ layout: default
 </div>
 
 <div class="grid grid-cols-3 gap-6 mt-4">
-  <div class="bg-blue-50 p-4 rounded-lg">
-    <h3 class="text-lg font-bold text-blue-800 mb-3">数据所有者 (DO)</h3>
+  <div class="bg-gray-50 p-4 rounded-lg">
+    <h3 class="text-lg font-bold text-gray-800 mb-3">数据所有者 (DO)</h3>
     <ul class="text-sm space-y-2">
       <li>生成方案所需的密钥</li>
       <li>使用CLIP提取特征</li>
@@ -150,8 +150,8 @@ layout: default
     </ul>
   </div>
 
-  <div class="bg-green-50 p-4 rounded-lg">
-    <h3 class="text-lg font-bold text-green-800 mb-3">数据用户 (DU)</h3>
+  <div class="bg-gray-50 p-4 rounded-lg">
+    <h3 class="text-lg font-bold text-gray-800 mb-3">数据用户 (DU)</h3>
     <ul class="text-sm space-y-2">
       <li>从DO获取密钥</li>
       <li>使用CLIP提取查询特征</li>
@@ -160,8 +160,8 @@ layout: default
     </ul>
   </div>
 
-  <div class="bg-orange-50 p-4 rounded-lg">
-    <h3 class="text-lg font-bold text-orange-800 mb-3">云服务器 (CS)</h3>
+  <div class="bg-gray-50 p-4 rounded-lg">
+    <h3 class="text-lg font-bold text-gray-800 mb-3">云服务器 (CS)</h3>
     <ul class="text-sm space-y-2">
       <li>存储加密索引和数据</li>
       <li>接收用户陷阱门</li>
@@ -343,8 +343,8 @@ layout: default
 ## 威胁模型与安全目标
 
 <div class="grid grid-cols-2 gap-6 mt-4">
-  <div class="bg-red-50 p-4 rounded-lg">
-    <h3 class="text-lg font-bold text-red-800 mb-3">威胁模型假设</h3>
+  <div class="bg-gray-50 p-4 rounded-lg">
+    <h3 class="text-lg font-bold text-gray-800 mb-3">威胁模型假设</h3>
     <ul class="text-sm space-y-2">
       <li><strong>诚实但好奇的云服务器</strong>：忠实执行协议但试图推断隐私信息</li>
       <li><strong>完全诚实的DO和DU</strong>：不会向云服务器泄露密钥</li>
@@ -353,8 +353,8 @@ layout: default
     </ul>
   </div>
 
-  <div class="bg-green-50 p-4 rounded-lg">
-    <h3 class="text-lg font-bold text-green-800 mb-3">安全目标</h3>
+  <div class="bg-gray-50 p-4 rounded-lg">
+    <h3 class="text-lg font-bold text-gray-800 mb-3">安全目标</h3>
     <ul class="text-sm space-y-2">
       <li><strong>文件隐私</strong>：保护外包到云端的加密文件内容</li>
       <li><strong>陷阱门隐私</strong>：防止从陷阱门推断用户查询语义</li>
@@ -364,8 +364,8 @@ layout: default
   </div>
 </div>
 
-<div class="mt-6 p-4 bg-blue-50 rounded-lg">
-  <h3 class="font-bold text-blue-800 mb-2">安全分析总结</h3>
+<div class="mt-6 p-4 bg-gray-50 rounded-lg">
+  <h3 class="font-bold text-gray-800 mb-2">安全分析总结</h3>
   <div class="text-sm">
     <p><strong>文件隐私：</strong>使用AES加密保护，密钥sk由DO和DU保管，云服务器无法解密。</p>
     <p><strong>陷阱门隐私：</strong>基于Secure kNN和SSE的安全性，在密文攻击模型下，云服务器无法从陷阱门推断原始查询语义。</p>
@@ -452,7 +452,7 @@ layout: two-cols-header
 - **极大优势**：比MU-TEIR快两个数量级
 - **第一层过滤**：LSH+SSE有效过滤无关图像
 
-<div class="mt-4 p-3 bg-blue-50 rounded text-sm">
+<div class="mt-4 p-3 bg-gray-50 rounded text-sm">
 <strong>效率分析：</strong>第一层索引的并行搜索和有效过滤是性能提升的关键因素。
 </div>
 
@@ -480,16 +480,16 @@ layout: two-cols-header
 
 ### 数据集表现
 
-<div class="bg-green-50 p-4 rounded-lg mb-4">
-<h4 class="font-bold text-green-800 mb-2">平均精确率(mAP)</h4>
+<div class="bg-gray-50 p-4 rounded-lg mb-4">
+<h4 class="font-bold text-gray-800 mb-2">平均精确率(mAP)</h4>
 <ul class="text-sm space-y-1">
 <li><strong>Caltech256</strong>: 0.853</li>
 <li><strong>CIFAR-100</strong>: 0.649</li>
 </ul>
 </div>
 
-<div class="bg-orange-50 p-4 rounded-lg">
-<h4 class="font-bold text-orange-800 mb-2">精确率下降分析</h4>
+<div class="bg-gray-50 p-4 rounded-lg">
+<h4 class="font-bold text-gray-800 mb-2">精确率下降分析</h4>
 <p class="text-sm">
 由于两层索引结构，LSH第一轮过滤在去除无关图像的同时，也可能过滤掉部分相关图像，导致随着k增大精确率下降速度比MU-TEIR快。
 </p>
@@ -516,22 +516,22 @@ layout: default
 
 <div class="grid grid-cols-2 gap-8 mt-4">
   <div>
-    <h3 class="text-xl font-bold text-blue-600 mb-3">技术创新</h3>
+    <h3 class="text-xl font-bold text-gray-800 mb-3">技术创新</h3>
     <ul class="space-y-2">
       <li class="flex items-start">
-        <span class="text-green-500 mr-2">✓</span>
+        <span class="text-gray-700 mr-2">•</span>
         <div>
           <span class="text-sm text-gray-600">创新性地将局部敏感哈希与对称可搜索加密结合，解决跨模态检索问题</span>
         </div>
       </li>
       <li class="flex items-start">
-        <span class="text-green-500 mr-2">✓</span>
+        <span class="text-gray-700 mr-2">•</span>
         <div>
           <span class="text-sm text-gray-600">LSH+SSE快速过滤配合Secure kNN精确排序，平衡效率与准确性</span>
         </div>
       </li>
       <li class="flex items-start">
-        <span class="text-green-500 mr-2">✓</span>
+        <span class="text-gray-700 mr-2">•</span>
         <div>
           <span class="text-sm text-gray-600">充分利用CLIP的跨模态语义对齐能力，在加密状态下保持语义关系</span>
         </div>
@@ -540,22 +540,22 @@ layout: default
   </div>
 
   <div>
-    <h3 class="text-xl font-bold text-green-600 mb-3">实用价值</h3>
+    <h3 class="text-xl font-bold text-gray-800 mb-3">实用价值</h3>
     <ul class="space-y-2">
       <li class="flex items-start">
-        <span class="text-blue-500 mr-2">★</span>
+        <span class="text-gray-700 mr-2">•</span>
         <div>
           <span class="text-sm text-gray-600">文件、索引、查询全程加密，满足严格的隐私保护需求</span>
         </div>
       </li>
       <li class="flex items-start">
-        <span class="text-blue-500 mr-2">★</span>
+        <span class="text-gray-700 mr-2">•</span>
         <div>
           <span class="text-sm text-gray-600">支持大规模外包数据场景，具有良好的可扩展性</span>
         </div>
       </li>
       <li class="flex items-start">
-        <span class="text-blue-500 mr-2">★</span>
+        <span class="text-gray-700 mr-2">•</span>
         <div>
           <span class="text-sm text-gray-600">效率与安全性并重，具备实际部署的可行性</span>
         </div>
@@ -564,7 +564,7 @@ layout: default
   </div>
 </div>
 
-<div class="mt-6 p-3 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg">
+<div class="mt-6 p-3 bg-gray-50 rounded-lg">
   <h3 class="font-bold text-lg mb-1">核心价值</h3>
   <p class="text-sm">
     本文提出的方案是首个将CLIP、LSH和SSE技术相结合的隐私保护跨模态检索方案，
@@ -588,13 +588,13 @@ layout: two-cols-header
 <h3>当前局限性</h3>
 
 <div class="mt-2">
-<h4 class="font-semibold text-red-800 mb-1">精确率衰减问题</h4>
+<h4 class="font-semibold text-gray-800 mb-1">精确率衰减问题</h4>
 <p class="text-sm mb-3">LSH第一层过滤可能误过滤相关图像，随着Top-k增大精确率下降较快</p>
 
-<h4 class="font-semibold text-orange-800 mb-1">参数调优复杂</h4>
+<h4 class="font-semibold text-gray-800 mb-1">参数调优复杂</h4>
 <p class="text-sm mb-3">LSH参数(B, r, m)的选择需要在效率和精确率间权衡，调优复杂</p>
 
-<h4 class="font-semibold text-yellow-800 mb-1">CLIP模型依赖</h4>
+<h4 class="font-semibold text-gray-800 mb-1">CLIP模型依赖</h4>
 <p class="text-sm">方案性能受限于CLIP模型的特征提取质量，难以适应特定领域</p>
 </div>
 
@@ -603,16 +603,16 @@ layout: two-cols-header
 <h3>未来研究方向</h3>
 
 <div class="mt-2">
-<h4 class="font-semibold text-green-800 mb-1">自适应参数优化</h4>
+<h4 class="font-semibold text-gray-800 mb-1">自适应参数优化</h4>
 <p class="text-sm mb-3">研究自动调优LSH参数的算法，根据数据特性动态优化配置</p>
 
-<h4 class="font-semibold text-blue-800 mb-1">多模态扩展</h4>
+<h4 class="font-semibold text-gray-800 mb-1">多模态扩展</h4>
 <p class="text-sm mb-3">扩展到音频、视频等多模态数据，构建更通用的隐私保护检索系统</p>
 
-<h4 class="font-semibold text-purple-800 mb-1">联邦学习结合</h4>
+<h4 class="font-semibold text-gray-800 mb-1">联邦学习结合</h4>
 <p class="text-sm mb-3">与联邦学习技术结合，在保护隐私的同时持续改进模型性能</p>
 
-<h4 class="font-semibold text-indigo-800 mb-1">实际部署验证</h4>
+<h4 class="font-semibold text-gray-800 mb-1">实际部署验证</h4>
 <p class="text-sm">在真实云环境中验证方案的实用性，并针对实际需求进行优化</p>
 </div>
 
