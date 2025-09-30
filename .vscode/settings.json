@@ -1,6 +1,7 @@
 {
   "slidev.include": [
     "**/slides.md",
-    "slides.md"
+    "slides.md",
+    "Clip-SE.md"
   ]
 }
