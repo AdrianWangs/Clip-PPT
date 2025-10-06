@@ -380,7 +380,7 @@ $$
 
 先统一一下符号。图像我们叫 I1 到 IN，文本叫 T1 到 TN。两者之间的相似度分数我们记成 s_ij = Ii * Tj,跟图里面保持一致，这个其实就等于右边公式里的 logits。本质上就是余弦相似度，然后除以一个温度参数 τ。
 
-我用图上的这个例子来给大家讲。I1 是小狗 Pepper 的照片，T1 是 "Pepper the aussie pup"，然后 T2、T3、T4 分别是 "a cat"、"a red sports car"、"a bird"。
+我用图上的这个例子来给大家讲。I1 是小狗 Pepper 的照片，T1 是 "Pepper the aussie pup"(小牧羊犬Pepper)，然后 T2、T3、T4 可以分别是 "a cat"、"a car"、"a bird"。
 
 现在我们来看这个矩阵。第一行代表什么呢？代表 I1 这张图和所有文本的相似度分数。我们希望的理想结果是什么？就是 s_1,1 这个分数最高，因为 I1 和 T1 才是真正的配对，其他的 s_1,2、s_1,3、s_1,4 都应该明显更低。同样的道理，第一列代表 T1 这个文本和所有图像的相似度，我们也希望 s_1,1 最高。
 
@@ -420,7 +420,7 @@ layout: two-cols-header
 <div class="text-xs text-gray-500">Figure 2: 训练效率对比（CLIP vs BoW vs Captioning）</div>
 
 <!--
-这页我想回答一个问题：为什么我们最终选择了“对比学习”，而不是传统的图像描述生成任务？
+这页我想回答一个问题：为什么论文作者最终选择了“对比学习”，而不是传统的图像描述生成任务？
 
 先看右图，这张图标识的是训练的效率，绿色的 CLIP 曲线明显比另外两条快。这背后有三个核心原因。
 
@@ -583,7 +583,7 @@ layout: two-cols-header
 ![Figure 13: Zero-shot CLIP is much more robust to distribution shift](https://cdn-mineru.openxlab.org.cn/result/2025-08-18/e789f79d-0783-438a-9410-da159951aeda/b5385db9b7c0f4909d17f1403273adc3efb6703186f9f68db1215125db16344a.jpg)
 
 <!--
-CLIP还表现出了更强的鲁棒性。当模型遇到和训练数据分布不同的图片时，传统ImageNet模型的性能会急剧下降，而零样本CLIP的性能下降幅度要小得多，几乎缩小了75%的性能差距。更有趣的发现是，如果我们试图在ImageNet上微调CLIP，虽然它在ImageNet上的分数变高了，但它的鲁棒性反而变差了。这有力地证明了，CLIP学到的不是特定数据集的‘偏方’，而是更通用的视觉知识。
+CLIP还表现出了更强的鲁棒性。当模型遇到和训练数据分布不同的图片时，传统ImageNet模型的性能会急剧下降，而零样本CLIP的性能下降幅度要小得多，几乎缩小了75%的性能差距。更有趣的发现是，如果我们试图在ImageNet上微调CLIP，虽然它在ImageNet上的分数变高了，但它的鲁棒性反而变差了。这有力地证明了，CLIP学到的不是针对特定数据集的专属特征，而是更通用的视觉知识。
 -->
 
 ---
