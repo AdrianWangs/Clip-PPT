@@ -2,6 +2,10 @@
   "slidev.include": [
     "**/slides.md",
     "slides.md",
-    "Clip-SE.md"
+    "Clip-SE.md",
+    "PPT列表/Miao_Ranked_Keyword_Search_2022.md",
+    "slidev-gpt-high.md",
+    "slidev-claude-45.md",
+    "slidev-gemini-25.md"
   ]
 }
