@@ -86,7 +86,7 @@ layout: default
 ## 系统整体架构
 
 <div class="mt-6">
-  <img src="./Miao Ranked Keyword Search 2022.md/a0c067a1818a9f933e517c34f305b127.png" alt="系统模型" class="w-7/12 mx-auto" style="background-color: white; padding: 1rem; border-radius: 0.5rem;">
+  <img src="https://cdn-mineru.openxlab.org.cn/result/2025-10-21/99ec5320-3a91-4791-a67b-f4c5f4535912/1fcf8300fb08de6368af2d42a638858855eef936384a1c336cc5790ec3882d31.jpg" alt="系统模型" class="w-7/12 mx-auto" style="background-color: white; padding: 1rem; border-radius: 0.5rem;">
   <div class="text-center text-sm text-gray-500 mt-2">图1：系统架构模型</div>
 </div>
 
@@ -318,7 +318,7 @@ layout: two-cols-header
 ::right::
 
 <div class="mt-4">
-  <img src="./Miao Ranked Keyword Search 2022.md/1e433370532221023952023a65f43092.png" alt="检索流程示例" class="w-full" style="background-color: white; padding: 1rem; border-radius: 0.5rem;">
+  <img src="https://cdn-mineru.openxlab.org.cn/result/2025-10-21/99ec5320-3a91-4791-a67b-f4c5f4535912/f82c7f1d63131f0742d8ef6f2319562d43404ab1ed9b00f9d4a4e6908b490e76.jpg" alt="检索流程示例" class="w-full" style="background-color: white; padding: 1rem; border-radius: 0.5rem;">
   <div class="text-xs text-gray-500 text-center">图2：完整检索流程示意图</div>
 </div>
 
@@ -408,7 +408,7 @@ layout: two-cols-header
 
 ### 索引构建时间
 
-<img src="./Miao Ranked Keyword Search 2022.md/14405a3537b73d5c0fb65a398c34c66d.png" alt="索引构建时间" class="w-full" style="background-color: white; padding: 1rem; border-radius: 0.5rem;">
+<img src="https://cdn-mineru.openxlab.org.cn/result/2025-10-21/99ec5320-3a91-4791-a67b-f4c5f4535912/6b43812655f558776e0af5d5008a255392a56e6c1e08978dd37c1139723be30e.jpg" alt="索引构建时间" class="w-full" style="background-color: white; padding: 1rem; border-radius: 0.5rem;">
 
 - **线性增长**: 索引构建时间与文件数量和关键词数量成正比，具有良好的可扩展性。
 - **主要开销**: 主要时间花费在TF-IDF向量的加密上。
@@ -417,7 +417,7 @@ layout: two-cols-header
 
 ### 检索时间
 
-<img src="./image/slides/search-time.png" alt="检索时间" class="w-full" style="background-color: white; padding: 1rem; border-radius: 0.5rem;">
+<img src="https://cdn-mineru.openxlab.org.cn/result/2025-10-21/99ec5320-3a91-4791-a67b-f4c5f4535912/373fb3c1282a894438988246b1085b1f8dffdbc8a5dc9347fa9a95af7c84c3b7.jpg" alt="检索时间" class="w-full" style="background-color: white; padding: 1rem; border-radius: 0.5rem;">
 
 - **高效检索**: 即使在包含10000个文件的数据集上，检索时间也仅在秒级。
 - **性能瓶颈**: 检索时间主要受匹配文件数量的影响。匹配的文件越多，需要执行安全SVM预测的次数就越多。
@@ -446,7 +446,7 @@ layout: two-cols-header
 
 ### 准确率对比
 
-<img src="./image/slides/accuracy.png" alt="准确率对比" class="w-full" style="background-color: white; padding: 1rem; border-radius: 0.5rem;">
+<img src="https://cdn-mineru.openxlab.org.cn/result/2025-10-21/99ec5320-3a91-4791-a67b-f4c5f4535912/37a1b300aa569043756e754f8e480d41bbca50c1a4614598f3ee312f6358add1.jpg" alt="准确率对比" class="w-full" style="background-color: white; padding: 1rem; border-radius: 0.5rem;">
 
 - **显著优势**: ML-RKS方案的准确率（Precision）显著优于其他不支持排名的传统方案。
 - **排名效果**: 能够将最相关的结果排在前面，Top-k结果的准确性很高。
