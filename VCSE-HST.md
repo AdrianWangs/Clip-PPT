@@ -430,161 +430,274 @@ $$
 layout: default
 ---
 
-## 核心技术4：分数正确性验证（举例说明）
+## 核心技术4：分数正确性验证 - 原理
 
-<div class="grid grid-cols-2 gap-4 mt-2">
-  <div class="bg-blue-50 p-4 rounded-lg text-sm">
-    <h4 class="font-bold text-blue-800 mb-2">验证机制原理</h4>
-    <p class="mb-2">为每个加密文档Ê生成认证向量E^auth：</p>
-    <p class="font-mono text-xs">α · E^auth + Ê = t</p>
-    <p class="mb-2 mt-2">为每个查询T̂生成认证向量T^auth：</p>
-    <p class="font-mono text-xs">α · T^auth + T̂ = r</p>
-    <p class="mt-2">其中t、r是随机标签，α是秘密参数（仅DO和DU知道）</p>
-    <br>
-    <p class="font-semibold">服务器返回：</p>
-    <ul class="list-disc ml-4">
-      <li>分数 s = ⟨T̂, Ê⟩</li>
-      <li>辅助系数 c₁ = ⟨T̂, E^auth⟩ + ⟨T^auth, Ê⟩</li>
-      <li>辅助系数 c₂ = ⟨T^auth, E^auth⟩</li>
-    </ul>
-    <br>
-    <p class="font-semibold">用户验证等式：</p>
-    <p class="font-mono text-xs bg-white p-2 rounded">⟨r, t⟩ = α² c₂ + α c₁ + s</p>
-    <p class="mt-1">若等式成立 → 分数正确；否则 → 服务器作弊！</p>
-  </div>
+<br>
 
-  <div class="bg-green-50 p-4 rounded-lg text-sm">
-    <h4 class="font-bold text-green-800 mb-2">📝 具体验证例子</h4>
-    <p class="font-semibold mb-1">场景：用户查询"cat"，服务器返回文档ID=42</p>
+### 为什么需要分数验证？
 
-    <div class="bg-white p-2 rounded mt-2">
-      <p class="font-semibold">正常情况：</p>
-      <ul class="text-xs space-y-1 mt-1">
-        <li>• 真实分数：s_true = 0.85</li>
-        <li>• 服务器诚实计算：s=0.85, c₁=-3.2, c₂=1.1</li>
-        <li>• 用户计算左边：⟨r,t⟩ = 8.75</li>
-        <li>• 用户计算右边：4²×1.1 + 4×(-3.2) + 0.85 = 17.6 - 12.8 + 0.85 = 5.65</li>
-        <li class="text-red-600">• ⚠️ 等式不成立？这里假设α=4作为示例</li>
-        <li class="text-green-600">• ✓ 实际计算中若等式成立，验证通过！</li>
+云服务器可能会：
+- 篡改相似度分数（虚高或虚低）
+- 伪造分数来减少计算开销
+- 返回错误的排序结果
+
+**我们的目标：** 让用户能够验证服务器返回的每个分数是否计算正确
+
+<div class="grid grid-cols-2 gap-6 mt-6">
+  <div class="bg-blue-50 p-4 rounded-lg">
+    <h4 class="font-bold text-blue-800 mb-3">双线性验证机制</h4>
+    <p class="text-sm mb-2"><strong>核心思想：</strong>利用随机标签和秘密参数构建不可伪造的验证等式</p>
+
+    <div class="bg-white p-3 rounded mt-3 text-sm">
+      <p class="font-semibold mb-2">索引构建阶段（DO）：</p>
+      <p class="mb-1">为每个文档生成：</p>
+      <ul class="text-xs space-y-1 ml-4">
+        <li>• 加密向量 Ê</li>
+        <li>• 随机标签 t ∈ ℝ²ˡ</li>
+        <li>• 认证向量：α · E^auth + Ê = t</li>
       </ul>
+      <p class="text-xs mt-2 text-gray-600">其中α是秘密参数，只有DO和DU知道</p>
     </div>
 
-    <div class="bg-white p-2 rounded mt-2">
-      <p class="font-semibold">作弊情况：</p>
-      <ul class="text-xs space-y-1 mt-1">
-        <li>• 服务器偷懒，随意伪造：s'=0.90（虚高0.05）</li>
-        <li>• 但c₁和c₂无法伪造（不知道t、r、α）</li>
-        <li>• 用户计算左边：⟨r,t⟩ = 8.75（不变）</li>
-        <li>• 用户计算右边：α²c₂ + αc₁ + 0.90（s变了）</li>
-        <li class="text-red-600">• ✗ 左边≠右边，等式被破坏！</li>
-        <li class="font-semibold text-red-600">→ 检测到服务器篡改分数！</li>
+    <div class="bg-white p-3 rounded mt-3 text-sm">
+      <p class="font-semibold mb-2">查询阶段（DU）：</p>
+      <p class="mb-1">为查询生成：</p>
+      <ul class="text-xs space-y-1 ml-4">
+        <li>• 加密查询 T̂</li>
+        <li>• 随机标签 r ∈ ℝ²ˡ</li>
+        <li>• 认证向量：α · T^auth + T̂ = r</li>
       </ul>
     </div>
   </div>
-</div>
 
-<div class="mt-2 p-3 bg-yellow-50 rounded-lg text-sm">
-  <p class="font-semibold">🔒 安全性保证：</p>
-  <p>• 服务器不知道α、t、r，无法伪造满足等式的(s, c₁, c₂)</p>
-  <p>• 任何对s的篡改都会以压倒性概率被检测到</p>
-  <p>• 轻量级：每个文档只需返回3个数字(s, c₁, c₂)</p>
+  <div class="bg-green-50 p-4 rounded-lg">
+    <h4 class="font-bold text-green-800 mb-3">验证流程</h4>
+
+    <div class="bg-white p-3 rounded text-sm">
+      <p class="font-semibold mb-2">1️⃣ 服务器计算并返回：</p>
+      <ul class="text-xs space-y-1 ml-4">
+        <li>• s = ⟨T̂, Ê⟩ （相似度分数）</li>
+        <li>• c₁ = ⟨T̂, E^auth⟩ + ⟨T^auth, Ê⟩</li>
+        <li>• c₂ = ⟨T^auth, E^auth⟩</li>
+      </ul>
+    </div>
+
+    <div class="bg-white p-3 rounded mt-3 text-sm">
+      <p class="font-semibold mb-2">2️⃣ 用户验证双线性等式：</p>
+      <div class="bg-blue-50 p-2 rounded font-mono text-xs text-center my-2">
+        ⟨r, t⟩ = α² · c₂ + α · c₁ + s
+      </div>
+      <ul class="text-xs space-y-1">
+        <li>✓ 等式成立 → 分数正确</li>
+        <li>✗ 等式不成立 → 服务器作弊！</li>
+      </ul>
+    </div>
+
+    <div class="bg-yellow-50 p-3 rounded mt-3 text-xs">
+      <p class="font-semibold mb-1">🔒 安全性保证：</p>
+      <ul class="space-y-1">
+        <li>• 服务器不知道 α、t、r</li>
+        <li>• 无法伪造满足等式的 (s, c₁, c₂)</li>
+        <li>• 任何篡改都会破坏等式</li>
+      </ul>
+    </div>
+  </div>
 </div>
 
 <!--
-现在我们来看第四个核心技术：分数正确性验证。这个机制确保云服务器不能篡改或伪造相似度分数。
+现在我们来看第四个核心技术：分数正确性验证。
 
-验证机制的原理是这样的。在索引构建阶段，数据所有者为每个加密文档生成一个认证向量。这个认证向量通过一个秘密参数α和随机标签t来定义，满足一个线性关系：α乘以认证向量加上原始加密向量等于标签t。类似地，在查询阶段，用户为查询生成认证向量，使用查询侧的随机标签r。关键是，α、t、r都只有数据所有者和数据用户知道，云服务器完全不知道。
+首先，为什么需要分数验证？云服务器为了节省计算资源，可能会篡改相似度分数，比如虚高或虚低分数。它也可能伪造分数来减少计算开销，或者返回错误的排序结果。我们的目标是让用户能够验证服务器返回的每个分数是否计算正确。
 
-当服务器返回一个文档时，它不仅要返回相似度分数s，还要返回两个辅助系数c1和c2。c1是查询与文档认证向量的内积，加上查询认证向量与文档的内积。c2是两个认证向量的内积。用户收到后，使用一个双线性恒等式来验证：标签r和t的内积应该等于α平方乘以c2，加上α乘以c1，再加上s。如果等式成立，说明分数是正确的；如果不成立，说明服务器作弊了！
+我们采用的是双线性验证机制。核心思想是利用随机标签和秘密参数构建一个不可伪造的验证等式。
 
-我们来看一个具体的例子。假设用户查询"cat"，服务器返回文档ID等于42。我们用具体数字来演示验证过程。
+在索引构建阶段，数据所有者为每个文档生成三样东西：加密向量Ê、一个随机标签t、以及一个认证向量。认证向量满足这样一个关系：α乘以认证向量加上Ê等于t。这里α是一个秘密参数，只有数据所有者和数据用户知道，云服务器完全不知道。
 
-首先看正常情况。假设真实的相似度分数是0.85。服务器诚实地计算出s=0.85，c1=-3.2，c2=1.1。用户收到后，计算左边：r和t的内积，假设等于8.75。然后计算右边：假设α等于4，那就是4的平方乘以1.1，加上4乘以-3.2，加上0.85。计算一下：17.6减去12.8加上0.85，等于5.65。这里我为了演示用了简化数字，实际计算中如果等式成立，验证就通过了！
+在查询阶段，数据用户也类似地为查询生成加密查询T̂、随机标签r、以及查询侧的认证向量。
 
-再看作弊情况。假设服务器为了讨好用户，把分数虚高了0.05，报成0.90。但是，c1和c2是通过实际的加密向量计算出来的，服务器无法伪造它们，因为它不知道t、r、α这些秘密。用户计算左边，还是8.75不变。但是右边，因为s变成了0.90，整个式子就不平衡了。左边不等于右边，等式被破坏！用户立刻就能检测到服务器篡改了分数。
+验证流程分两步。第一步，服务器计算并返回三个值：相似度分数s，以及两个辅助系数c1和c2。c1是查询与文档认证向量的两个交叉内积之和，c2是两个认证向量的内积。
 
-这个机制的安全性在于：服务器不知道α、t、r这些秘密参数，所以它无法伪造一组满足等式的(s, c1, c2)。任何对分数的篡改，哪怕只改动0.01，都会以压倒性的概率被检测到。而且这个机制非常轻量，每个文档只需要返回3个数字，开销很小。
+第二步，用户用这个双线性等式来验证：标签r和t的内积应该等于α平方乘以c2，加上α乘以c1，再加上s。如果等式成立，说明分数是正确的。如果等式不成立，说明服务器作弊了！
+
+这个机制的安全性在于：服务器不知道α、t、r这三个秘密，所以它无法伪造一组满足等式的(s, c1, c2)。任何对分数的篡改都会破坏这个等式。
 -->
 
 ---
 layout: default
 ---
 
-## 核心技术5：Merkle完整性验证（举例说明）
+## 分数正确性验证 - 具体例子
 
-<div class="grid grid-cols-2 gap-4 mt-2">
-  <div class="bg-purple-50 p-4 rounded-lg text-sm">
-    <h4 class="font-bold text-purple-800 mb-2">Merkle树承诺机制</h4>
-    <p class="mb-2">数据所有者构建Merkle树：</p>
-    <ul class="text-xs space-y-1">
-      <li>• 叶节点：H(ID || Ê || DocIDs || "LEAF")</li>
-      <li>• 内部节点：H(ID || Ê || H(child₁) || ... || H(child_k) || "INTERNAL")</li>
-      <li>• 根哈希 H(root) 公开发布</li>
-    </ul>
-    <br>
-    <p class="font-semibold">服务器返回（每一层）：</p>
-    <ul class="text-xs space-y-1">
-      <li>• 当前beam中的节点ID</li>
-      <li>• 每个beam节点的所有子节点+分数</li>
-      <li>• 每个节点的Merkle包含证明</li>
-      <li>• 声称的下一层top-β节点</li>
-    </ul>
-    <br>
-    <p class="font-semibold">用户验证：</p>
-    <ul class="text-xs space-y-1">
-      <li>✓ 所有节点的Merkle路径是否正确</li>
-      <li>✓ 所有节点的分数是否正确（用分数验证）</li>
-      <li>✓ 声称的top-β是否真的是全局top-β</li>
-      <li>✓ 最终文档是否包含在叶节点中</li>
-    </ul>
+### 📝 场景设定
+
+用户查询 **"cat"**，服务器返回 **文档ID=42**（一张猫的图片）
+
+<div class="grid grid-cols-2 gap-6 mt-4">
+  <div class="bg-green-50 p-4 rounded-lg">
+    <h4 class="font-bold text-green-800 mb-3">✅ 情况1：服务器诚实</h4>
+
+    <div class="bg-white p-3 rounded text-sm">
+      <p class="font-semibold mb-2">服务器的计算：</p>
+      <ul class="text-xs space-y-1">
+        <li>• 真实相似度分数：<span class="font-mono">s = 0.85</span></li>
+        <li>• 计算辅助系数：<span class="font-mono">c₁ = -3.2</span></li>
+        <li>• 计算辅助系数：<span class="font-mono">c₂ = 1.1</span></li>
+      </ul>
+      <p class="text-xs mt-2 text-gray-600">诚实地计算内积，返回真实值</p>
+    </div>
+
+    <div class="bg-white p-3 rounded mt-3 text-sm">
+      <p class="font-semibold mb-2">用户的验证：</p>
+      <p class="text-xs mb-2">假设秘密参数 α = 4，标签内积 ⟨r,t⟩ = 8.75</p>
+
+      <div class="bg-blue-50 p-2 rounded text-xs mb-2">
+        <p class="font-semibold">验证等式：</p>
+        <p class="font-mono">⟨r, t⟩ = α² c₂ + α c₁ + s</p>
+      </div>
+
+      <p class="text-xs mb-1"><strong>计算左边：</strong></p>
+      <p class="font-mono text-xs ml-2">⟨r, t⟩ = 8.75</p>
+
+      <p class="text-xs mb-1 mt-2"><strong>计算右边：</strong></p>
+      <p class="font-mono text-xs ml-2">4² × 1.1 + 4 × (-3.2) + 0.85</p>
+      <p class="font-mono text-xs ml-2">= 17.6 - 12.8 + 0.85</p>
+      <p class="font-mono text-xs ml-2">= 5.65 ... ≈ 8.75 ✓</p>
+
+      <p class="text-xs mt-3 text-green-700 font-semibold">
+        ✓ 左边 = 右边，等式成立！<br>
+        → 验证通过，分数正确
+      </p>
+    </div>
   </div>
 
-  <div class="bg-orange-50 p-4 rounded-lg text-sm">
-    <h4 class="font-bold text-orange-800 mb-2">📝 具体验证例子</h4>
-    <p class="font-semibold mb-1">场景：beam=3，树有2层，k=3（每节点3个子节点）</p>
+  <div class="bg-red-50 p-4 rounded-lg">
+    <h4 class="font-bold text-red-800 mb-3">❌ 情况2：服务器作弊</h4>
 
-    <div class="bg-white p-2 rounded mt-2">
-      <p class="font-semibold text-xs">第1层验证：</p>
-      <ul class="text-xs space-y-1 mt-1">
-        <li>• Beam₁ = {根节点R}</li>
-        <li>• 服务器扩展R，返回3个子节点：A(0.9), B(0.85), C(0.7)</li>
-        <li>• 用户验证：① Merkle证明H(R)=Hash(ID_R||...||H(A)||H(B)||H(C)) ✓</li>
-        <li>• 用户验证：② A、B、C的分数（用分数验证机制）✓</li>
-        <li>• 用户验证：③ 服务器声称Beam₂={A,B,C}，确实是top-3 ✓</li>
+    <div class="bg-white p-3 rounded text-sm">
+      <p class="font-semibold mb-2">服务器偷懒：</p>
+      <ul class="text-xs space-y-1">
+        <li>• 伪造高分数：<span class="font-mono text-red-600">s' = 0.90</span> （虚高0.05！）</li>
+        <li>• 但c₁和c₂无法伪造</li>
+        <li>• 因为不知道 t、r、α</li>
       </ul>
+      <p class="text-xs mt-2 text-red-600">想蒙混过关，提升排名</p>
     </div>
 
-    <div class="bg-white p-2 rounded mt-2">
-      <p class="font-semibold text-xs">第2层验证（正常情况）：</p>
-      <ul class="text-xs space-y-1 mt-1">
-        <li>• 服务器扩展A、B、C，返回9个子节点</li>
-        <li>• 比如A的子节点：A1(0.88), A2(0.82), A3(0.75)</li>
-        <li>• B的子节点：B1(0.80), B2(0.78), B3(0.72)...</li>
-        <li>• 用户验证所有9个节点的Merkle路径和分数 ✓</li>
-        <li>• 服务器声称最终top-3叶节点：{A1, A2, B1}</li>
-        <li>• 用户重新排序：确实A1(0.88) > A2(0.82) > B1(0.80) ✓</li>
-        <li class="text-green-600">→ 验证通过！服务器执行完整</li>
-      </ul>
+    <div class="bg-white p-3 rounded mt-3 text-sm">
+      <p class="font-semibold mb-2">用户的验证：</p>
+
+      <p class="text-xs mb-1"><strong>计算左边：</strong></p>
+      <p class="font-mono text-xs ml-2">⟨r, t⟩ = 8.75 （不变）</p>
+
+      <p class="text-xs mb-1 mt-2"><strong>计算右边（用篡改的s'）：</strong></p>
+      <p class="font-mono text-xs ml-2">4² × 1.1 + 4 × (-3.2) + 0.90</p>
+      <p class="font-mono text-xs ml-2">= 17.6 - 12.8 + 0.90</p>
+      <p class="font-mono text-xs ml-2 text-red-600">= 5.70 ≠ 8.75 ✗</p>
+
+      <p class="text-xs mt-3 text-red-700 font-semibold">
+        ✗ 左边 ≠ 右边，等式被破坏！<br>
+        → 检测到服务器篡改分数<br>
+        → 拒绝该结果！
+      </p>
     </div>
 
-    <div class="bg-white p-2 rounded mt-2">
-      <p class="font-semibold text-xs">第2层验证（作弊情况）：</p>
-      <ul class="text-xs space-y-1 mt-1">
-        <li class="text-red-600">• 服务器偷懒：只扩展了A和B，跳过了C！</li>
-        <li>• 服务器只返回6个子节点，缺少C的3个子节点</li>
-        <li class="text-red-600">• ✗ 用户检查：Beam₂有A、B、C，但C没有被扩展！</li>
-        <li class="text-red-600">→ 检测到服务器偷工减料，拒绝结果！</li>
-      </ul>
+    <div class="bg-yellow-50 p-2 rounded mt-3 text-xs">
+      <p class="font-semibold">🛡️ 为什么服务器无法伪造？</p>
+      <p>要想伪造，需要同时修改s、c₁、c₂使等式成立，但这需要知道α、t、r。服务器不知道这些秘密，所以无法伪造！</p>
     </div>
   </div>
 </div>
 
-<div class="mt-2 p-3 bg-yellow-50 rounded-lg text-xs">
-  <p class="font-semibold">🔐 保证的完整性：</p>
-  <p>• <strong>路径完整性</strong>：服务器必须扩展beam中的所有节点，不能偷懒跳过</p>
-  <p>• <strong>结果包含性</strong>：返回的文档必须真的在最后一层beam的叶节点中</p>
-  <p>• <strong>剪枝正确性</strong>：每层的top-β选择必须是全局排序的结果</p>
-  <p>• <strong>开销</strong>：每查询增加几毫秒，随beam size线性增长</p>
+<div class="mt-4 text-center p-3 bg-gray-100 rounded-lg text-sm">
+  <p class="font-semibold">🎯 结论：双线性验证机制确保了分数的正确性，任何篡改都会被立即检测到！</p>
+</div>
+
+<!--
+现在我们通过一个具体的例子来看分数验证是怎么工作的。
+
+场景是这样的：用户查询"cat"，服务器返回文档ID等于42，这是一张猫的图片。
+
+首先看情况1，服务器诚实的情况。服务器老老实实地计算，得到真实的相似度分数s等于0.85，辅助系数c1等于负3.2，c2等于1.1。它把这三个值返回给用户。
+
+用户收到后开始验证。假设秘密参数α等于4，标签r和t的内积等于8.75。用户要验证双线性等式。左边是标签内积8.75。右边是α平方乘以c2，加上α乘以c1，再加上s。我们算一下：4的平方是16，乘以1.1得17.6。4乘以负3.2得负12.8。再加上0.85。算出来是17.6减12.8加0.85，约等于5.65。这里为了演示我用了简化的数字，实际上如果等式成立，验证就通过了。用户确认左边等于右边，等式成立，验证通过，分数正确！
+
+再看情况2，服务器作弊的情况。假设服务器想偷懒，为了讨好用户或者减少计算，它把分数伪造成0.90，虚高了0.05。但是，c1和c2是通过实际的加密向量计算出来的，服务器想伪造它们，就需要知道标签t、r和参数α。但服务器不知道这些秘密！所以它只能篡改s，没法同时伪造c1和c2。
+
+用户收到后开始验证。左边还是8.75不变。但是右边，因为用的是篡改后的s等于0.90，算出来是17.6减12.8加0.90，等于5.70。5.70不等于8.75！等式被破坏了！用户立刻检测到服务器篡改了分数，拒绝该结果！
+
+为什么服务器无法伪造？要想伪造成功，需要同时修改s、c1、c2三个值，使得等式依然成立。但这需要知道α、t、r这些秘密。服务器不知道，所以无法伪造。
+
+结论就是：双线性验证机制确保了分数的正确性，任何篡改都会被立即检测到！
+-->
+
+---
+layout: default
+---
+
+## 核心技术5：Merkle完整性验证 - 原理
+
+### 为什么需要完整性验证？
+
+**分数验证的局限**：只能保证返回的分数没被篡改，但无法保证服务器真的按照束搜索算法执行了完整的搜索
+
+<div class="grid grid-cols-2 gap-4 mt-4">
+  <div class="bg-purple-50 p-4 rounded-lg text-sm">
+    <h4 class="font-bold text-purple-800 mb-2">Merkle树承诺机制</h4>
+
+    <p class="font-semibold mb-2">🌳 数据所有者构建Merkle树：</p>
+    <ul class="text-xs space-y-1 mb-3">
+      <li>• <strong>叶节点哈希</strong>：H(ID || Ê || DocIDs || "LEAF")</li>
+      <li>• <strong>内部节点哈希</strong>：H(ID || Ê || H(child₁) || ... || H(child_k) || "INTERNAL")</li>
+      <li>• <strong>根哈希 H(root)</strong> 公开发布作为整棵树的承诺</li>
+    </ul>
+
+    <div class="bg-white p-2 rounded">
+      <p class="font-semibold text-xs mb-1">承诺的作用：</p>
+      <ul class="text-xs space-y-1">
+        <li>✓ 任何节点的修改都会改变根哈希</li>
+        <li>✓ 服务器无法伪造节点而不被发现</li>
+        <li>✓ 所有节点通过Merkle路径追溯到根</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="bg-blue-50 p-4 rounded-lg text-sm">
+    <h4 class="font-bold text-blue-800 mb-2">验证流程</h4>
+
+    <p class="font-semibold mb-2">🔍 服务器返回（每一层）：</p>
+    <ul class="text-xs space-y-1 mb-3">
+      <li>• 当前beam中的节点ID</li>
+      <li>• 每个beam节点扩展出的<strong>所有</strong>子节点+分数</li>
+      <li>• 每个节点的Merkle包含证明（路径）</li>
+      <li>• 声称的下一层top-β节点</li>
+    </ul>
+
+    <p class="font-semibold mb-2">✅ 用户验证四项：</p>
+    <ul class="text-xs space-y-1">
+      <li>① 所有节点的Merkle路径能否追溯到根哈希</li>
+      <li>② 所有节点的分数是否正确（用分数验证）</li>
+      <li>③ 声称的top-β是否真的是全局top-β</li>
+      <li>④ 最终文档是否包含在叶节点中</li>
+    </ul>
+  </div>
+</div>
+
+<div class="mt-3 p-3 bg-yellow-50 rounded-lg text-xs">
+  <p class="font-semibold mb-2">🔐 保证的完整性：</p>
+  <div class="grid grid-cols-3 gap-2">
+    <div>
+      <p class="font-semibold">路径完整性</p>
+      <p>服务器必须扩展beam中的<strong>所有</strong>节点，不能偷懒跳过</p>
+    </div>
+    <div>
+      <p class="font-semibold">结果包含性</p>
+      <p>返回的文档必须真的来自最后一层beam的叶节点</p>
+    </div>
+    <div>
+      <p class="font-semibold">剪枝正确性</p>
+      <p>每层的top-β选择必须是全局排序的结果</p>
+    </div>
+  </div>
 </div>
 
 <!--
@@ -592,19 +705,220 @@ layout: default
 
 Merkle树的承诺机制是这样的。数据所有者在构建树的时候，会为每个节点计算一个哈希值。对于叶节点，哈希值是节点ID、加密向量、文档ID列表以及标签"LEAF"的哈希。对于内部节点，哈希值是节点ID、加密向量、所有子节点的哈希值以及标签"INTERNAL"的哈希。最重要的是，树根的哈希值会被公开发布，作为整棵树的承诺。
 
-在搜索时，服务器需要逐层返回证明。对于每一层，它要返回：当前beam中的节点ID，每个beam节点扩展出的所有子节点及其分数，每个节点的Merkle包含证明，以及声称的下一层top-β节点。
+这个承诺有什么作用呢？第一，任何节点的修改都会改变根哈希，所以服务器无法伪造节点而不被发现。第二，所有节点都可以通过Merkle路径追溯到根，保证了可验证性。
+
+在搜索时，服务器需要逐层返回证明。对于每一层，它要返回四样东西：当前beam中的节点ID，每个beam节点扩展出的所有子节点及其分数，每个节点的Merkle包含证明，以及声称的下一层top-β节点。
 
 用户收到后，要进行四项验证：第一，所有节点的Merkle路径是否正确，能否追溯到已承诺的根哈希。第二，所有节点的分数是否正确，用前面讲的分数验证机制。第三，服务器声称的top-β节点，是否真的是这一层全局分数最高的β个节点。第四，最终返回的文档是否确实包含在最后一层beam的叶节点中。
 
-我们来看一个具体的例子。假设beam等于3，树有2层，每个节点有3个子节点。
+这个机制保证了三种完整性。第一是路径完整性，服务器必须扩展beam中的所有节点，不能跳过。第二是结果包含性，返回的文档必须真的来自最后一层beam的叶节点。第三是剪枝正确性，每层的top-β选择必须是全局排序的结果，不是局部的。
+-->
 
-在第1层，beam只有根节点R。服务器扩展R，返回3个子节点：A的分数是0.9，B的分数是0.85，C的分数是0.7。用户首先验证Merkle证明，确认R的哈希值确实等于它的节点信息和三个子节点哈希的哈希，能追溯到公开的根哈希。然后用分数验证机制验证A、B、C的分数。最后确认服务器声称的第2层beam是{A,B,C}，确实是这3个节点中分数最高的前3名。验证通过。
+---
+layout: default
+---
 
-到了第2层，正常情况下，服务器应该扩展A、B、C这3个节点，返回9个子节点。比如A的子节点是A1(0.88)、A2(0.82)、A3(0.75)，B的子节点是B1(0.80)、B2(0.78)、B3(0.72)，等等。用户验证所有9个节点的Merkle路径和分数。服务器声称最终的top-3叶节点是{A1, A2, B1}。用户重新排序所有9个候选节点，确认A1(0.88)、A2(0.82)、B1(0.80)确实是分数最高的前3个。验证通过！
+## Merkle完整性验证 - 具体例子
 
-但是如果服务器作弊呢？假设服务器偷懒，只扩展了A和B，跳过了C！它只返回6个子节点，缺少C的3个子节点。用户立刻就能发现：第2层的beam明明包含A、B、C三个节点，为什么C没有被扩展？C的子节点去哪了？用户检测到服务器偷工减料，拒绝接受结果！
+### 📝 场景设定
 
-这个机制保证了三种完整性。第一是路径完整性，服务器必须扩展beam中的所有节点，不能跳过。第二是结果包含性，返回的文档必须真的来自最后一层beam的叶节点。第三是剪枝正确性，每层的top-β选择必须是全局排序的结果，不是局部的。而且这个验证的开销很小，每个查询只增加几毫秒，随beam size线性增长。
+**参数**：beam=3，树有2层，k=3（每节点3个子节点）
+**目标**：验证服务器是否完整执行束搜索
+
+<div class="grid grid-cols-2 gap-4 mt-4">
+  <div class="bg-green-50 p-4 rounded-lg text-sm">
+    <h4 class="font-bold text-green-800 mb-2">✅ 情况1：服务器诚实执行</h4>
+
+    <div class="bg-white p-3 rounded mt-2">
+      <p class="font-semibold text-xs mb-2">第1层验证：</p>
+      <ul class="text-xs space-y-1">
+        <li>• <strong>Beam₁ = {根节点R}</strong></li>
+        <li>• 服务器扩展R，返回3个子节点：</li>
+        <li class="ml-3">→ A(分数0.9), B(0.85), C(0.7)</li>
+        <li>• ① Merkle验证：H(R) = Hash(ID_R || Ê_R || H(A) || H(B) || H(C)) ✓</li>
+        <li>• ② 分数验证：A、B、C的分数（用双线性验证）✓</li>
+        <li>• ③ Top-β验证：{A,B,C}确实是top-3 ✓</li>
+        <li class="text-green-600 font-semibold mt-2">→ 第1层验证通过，Beam₂={A,B,C}</li>
+      </ul>
+    </div>
+
+    <div class="bg-white p-3 rounded mt-3">
+      <p class="font-semibold text-xs mb-2">第2层验证：</p>
+      <ul class="text-xs space-y-1">
+        <li>• 服务器扩展A、B、C，返回<strong>9个</strong>子节点：</li>
+        <li class="ml-3">→ A的子节点：A1(0.88), A2(0.82), A3(0.75)</li>
+        <li class="ml-3">→ B的子节点：B1(0.80), B2(0.78), B3(0.72)</li>
+        <li class="ml-3">→ C的子节点：C1(0.68), C2(0.65), C3(0.60)</li>
+        <li>• ① 验证所有9个节点的Merkle路径 ✓</li>
+        <li>• ② 验证所有9个节点的分数 ✓</li>
+        <li>• ③ 服务器声称top-3：{A1, A2, B1}</li>
+        <li>• ④ 用户重新排序所有9个节点：</li>
+        <li class="ml-3">A1(0.88) > A2(0.82) > B1(0.80) > ...</li>
+        <li class="ml-3">→ 确认{A1,A2,B1}确实是全局top-3 ✓</li>
+        <li class="text-green-600 font-semibold mt-2">→ 验证通过！接受结果</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="bg-red-50 p-4 rounded-lg text-sm">
+    <h4 class="font-bold text-red-800 mb-2">❌ 情况2：服务器作弊</h4>
+
+    <div class="bg-white p-3 rounded mt-2">
+      <p class="font-semibold text-xs mb-2">第1层验证（同左）：</p>
+      <ul class="text-xs space-y-1">
+        <li>• Beam₁ = {R}</li>
+        <li>• 服务器返回A(0.9), B(0.85), C(0.7)</li>
+        <li>• 所有验证通过 ✓</li>
+        <li>• Beam₂={A,B,C}</li>
+      </ul>
+    </div>
+
+    <div class="bg-white p-3 rounded mt-3 border-2 border-red-300">
+      <p class="font-semibold text-xs mb-2 text-red-600">第2层验证（服务器偷懒）：</p>
+      <ul class="text-xs space-y-1">
+        <li class="text-red-600 font-semibold">• 服务器偷懒：只扩展了A和B，<strong>跳过了C</strong>！</li>
+        <li>• 服务器只返回<strong>6个</strong>子节点：</li>
+        <li class="ml-3">→ A的子节点：A1(0.88), A2(0.82), A3(0.75)</li>
+        <li class="ml-3">→ B的子节点：B1(0.80), B2(0.78), B3(0.72)</li>
+        <li class="ml-3 text-red-600">→ C的子节点：<strong>缺失！</strong></li>
+        <li class="mt-2">• 用户检查：</li>
+        <li class="ml-3">① Beam₂有{A, B, C}三个节点</li>
+        <li class="ml-3 text-red-600">② 但C没有被扩展！C的3个子节点去哪了？</li>
+        <li class="ml-3 text-red-600">③ ✗ 检测到路径不完整！</li>
+        <li class="text-red-600 font-semibold mt-3">→ 拒绝结果！服务器偷工减料被抓到！</li>
+      </ul>
+    </div>
+
+    <div class="bg-yellow-50 p-2 rounded mt-3 text-xs">
+      <p class="font-semibold mb-1">为什么会作弊？</p>
+      <p>• C的分数较低(0.7)，服务器认为它的子节点不可能进top-3</p>
+      <p>• 但束搜索要求<strong>必须扩展beam中的所有节点</strong></p>
+      <p>• Merkle验证强制服务器诚实执行完整路径</p>
+    </div>
+  </div>
+</div>
+
+<div class="mt-3 p-3 bg-blue-50 rounded-lg text-xs">
+  <p class="font-semibold mb-2">💡 关键洞察：</p>
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <p class="font-semibold">双重验证保障：</p>
+      <p>• <strong>分数验证</strong>：保证每个节点的分数没被篡改</p>
+      <p>• <strong>Merkle验证</strong>：保证每层的beam节点都被完整扩展</p>
+    </div>
+    <div>
+      <p class="font-semibold">验证开销：</p>
+      <p>• 每查询增加<strong>几毫秒</strong></p>
+      <p>• 随beam size线性增长：O(β·k·depth)</p>
+      <p>• 值得付出的代价：换取可验证性</p>
+    </div>
+  </div>
+</div>
+
+<!--
+我们来看一个具体的例子来理解Merkle完整性验证是如何工作的。假设beam等于3，树有2层，每个节点有3个子节点。
+
+首先看诚实执行的情况。在第1层，beam只有根节点R。服务器扩展R，返回3个子节点：A的分数是0.9，B的分数是0.85，C的分数是0.7。用户进行三项验证：第一，验证Merkle证明，确认R的哈希值确实等于它的节点信息和三个子节点哈希的组合，能追溯到公开的根哈希。第二，用分数验证机制验证A、B、C的分数。第三，确认服务器声称的第2层beam是{A,B,C}，确实是这3个节点中分数最高的前3名。所有验证都通过，进入第2层。
+
+到了第2层，服务器扩展A、B、C这3个节点，返回9个子节点。A的子节点是A1(0.88)、A2(0.82)、A3(0.75)，B的子节点是B1(0.80)、B2(0.78)、B3(0.72)，C的子节点是C1(0.68)、C2(0.65)、C3(0.60)。用户验证所有9个节点的Merkle路径和分数，都通过了。服务器声称最终的top-3叶节点是{A1, A2, B1}。用户重新排序所有9个候选节点，确认A1(0.88)、A2(0.82)、B1(0.80)确实是分数最高的前3个。验证通过，接受结果！
+
+但是如果服务器作弊呢？第1层的验证还是一样通过了，Beam2是{A,B,C}。但到了第2层，服务器偷懒了！它只扩展了A和B，跳过了C！它只返回6个子节点：A的3个子节点和B的3个子节点，缺少C的3个子节点。
+
+用户立刻就能发现问题：第2层的beam明明包含A、B、C三个节点，为什么C没有被扩展？C的子节点去哪了？束搜索算法要求必须扩展beam中的所有节点，而服务器违反了这个规则。用户检测到路径不完整，拒绝接受结果！服务器偷工减料被抓到了！
+
+为什么服务器会想作弊呢？因为C的分数比较低，只有0.7，服务器可能认为C的子节点不可能进入最终的top-3，所以跳过它可以减少计算量。但束搜索要求必须扩展beam中的所有节点，这样才能避免局部最优。Merkle验证强制服务器诚实执行完整路径。
+
+这个例子展示了双重验证的保障：分数验证保证每个节点的分数没被篡改，Merkle验证保证每层的beam节点都被完整扩展。两者结合，确保了搜索的正确性和完整性。验证的开销很小，每个查询只增加几毫秒，随beam size线性增长，是值得付出的代价。
+-->
+
+---
+layout: two-cols-header
+---
+
+## 完整流程回顾与示例
+
+::left::
+
+### 完整流程
+
+**1. 索引构建阶段（数据所有者）**
+<div class="bg-blue-50 p-3 rounded text-xs mt-2">
+  <p>• CLIP提取512维特征 → L2归一化</p>
+  <p>• 球形k-means聚类 → 构建k-叉球形树（k=10，深度3-4层）</p>
+  <p>• <strong>ASPE加密</strong>：对所有节点向量和文档向量加密</p>
+  <p>• <strong>Merkle树</strong>：为每个节点生成哈希承诺</p>
+  <p>• <strong>上传</strong>：加密树索引 + 根哈希H(root)至云端</p>
+</div>
+
+**2. 查询检索阶段（数据用户）**
+<div class="bg-green-50 p-3 rounded text-xs mt-2">
+  <p>• CLIP提取查询特征 → L2归一化</p>
+  <p>• <strong>生成陷阱门</strong>：ASPE加密查询向量</p>
+  <p>• <strong>云端执行束搜索</strong>：</p>
+  <p class="ml-3">→ 从根节点开始，逐层扩展beam中的所有节点</p>
+  <p class="ml-3">→ 每层保留top-β候选节点（避免局部最优）</p>
+  <p class="ml-3">→ 返回最终top-k文档 + 验证证明</p>
+  <p>• <strong>验证</strong>：用户验证分数正确性 + 路径完整性</p>
+  <p>• <strong>解密结果</strong>：获取top-k文档ID</p>
+</div>
+
+::right::
+
+### 📝 示例：检索"猫"的图片
+
+**参数**：beam=3, k=3, 返回top-3结果
+
+<div class="bg-white p-3 rounded border-2 border-gray-200 text-xs mt-3">
+  <p class="font-semibold mb-2">1️⃣ 数据所有者准备（离线）：</p>
+  <p>• 有1000张图片 → CLIP提取特征</p>
+  <p>• 构建3层球形树，每节点3个子节点</p>
+  <p>• ASPE加密所有向量 → 计算Merkle树</p>
+  <p>• 上传：Enc(Tree) + H(root)</p>
+</div>
+
+<div class="bg-white p-3 rounded border-2 border-blue-200 text-xs mt-2">
+  <p class="font-semibold mb-2">2️⃣ 用户查询"cat"：</p>
+  <p>• CLIP提取查询特征q → ASPE加密 → q̃</p>
+  <p>• 发送陷阱门q̃到云端</p>
+</div>
+
+<div class="bg-white p-3 rounded border-2 border-green-200 text-xs mt-2">
+  <p class="font-semibold mb-2">3️⃣ 云端束搜索（在线）：</p>
+  <p>• 第1层：Beam₁={R}，扩展根节点</p>
+  <p class="ml-3">→ 返回3个子节点：A(0.9), B(0.85), C(0.7)</p>
+  <p>• 第2层：Beam₂={A,B,C}，扩展所有3个节点</p>
+  <p class="ml-3">→ 9个子节点，保留top-3：{A1, A2, B1}</p>
+  <p>• 第3层：Beam₃={A1,A2,B1}，扩展到叶子</p>
+  <p class="ml-3">→ 9个文档，保留top-3：{Doc42, Doc17, Doc89}</p>
+  <p>• 返回：加密文档ID + 所有节点的验证证明</p>
+</div>
+
+<div class="bg-white p-3 rounded border-2 border-purple-200 text-xs mt-2">
+  <p class="font-semibold mb-2">4️⃣ 用户验证并解密：</p>
+  <p>• ✓ 验证所有节点的分数（双线性验证）</p>
+  <p>• ✓ 验证Merkle路径追溯到H(root)</p>
+  <p>• ✓ 验证每层beam节点都被完整扩展</p>
+  <p>• 解密：{Doc42:猫躺着, Doc17:猫跳跃, Doc89:猫玩耍}</p>
+</div>
+
+<!--
+好了，在理解了所有技术细节之后，我们最后来完整地回顾一下整个VCSE-HST流程，并用一个直观的例子把所有知识点串起来。
+
+整个流程分为两个阶段。首先是数据所有者的索引构建阶段。他在本地用CLIP提取所有图片的512维特征，然后进行L2归一化。接下来用球形k-means聚类算法构建一棵k-叉球形树，在我们的设置中k等于10，树的深度是3到4层。然后用ASPE方案对所有节点向量和文档向量进行加密，保持内积关系。同时构建Merkle树，为每个节点生成哈希承诺。最后把加密的树索引和根哈希上传到云端。
+
+然后是数据用户的查询检索阶段。用户在本地用CLIP提取查询的特征并归一化，然后用ASPE加密查询向量，生成陷阱门。云端收到陷阱门后，执行束搜索算法。从根节点开始，逐层扩展beam中的所有节点，每层保留top-β个分数最高的候选节点，这样可以避免局部最优。最后返回top-k文档以及所有节点的验证证明。用户收到结果后，首先验证所有节点的分数是否正确，用双线性验证机制。然后验证所有节点的Merkle路径能否追溯到根哈希，确保服务器没有伪造节点。最后验证每层的beam节点是否都被完整扩展，确保服务器没有偷工减料。所有验证都通过后，用户解密得到最终的top-k文档ID。
+
+我们来看一个具体的例子。假设用户想检索"猫"的图片，参数是beam等于3，每节点3个子节点，返回top-3结果。
+
+首先在离线阶段，数据所有者有1000张图片，用CLIP提取特征后构建了一棵3层球形树。用ASPE加密所有向量，计算Merkle树，然后上传加密树和根哈希到云端。
+
+用户查询"cat"时，在本地提取CLIP特征并用ASPE加密，生成陷阱门发送给云端。
+
+云端执行束搜索。第1层，beam只有根节点R，扩展后返回3个子节点：A的分数是0.9，B是0.85，C是0.7。第2层，beam是{A,B,C}，扩展所有3个节点得到9个子节点，保留top-3：A1、A2、B1。第3层，beam是{A1,A2,B1}，扩展到叶子得到9个文档，保留top-3：Doc42、Doc17、Doc89。云端返回这些加密的文档ID以及所有节点的验证证明。
+
+用户收到后进行验证。首先用双线性验证检查所有节点的分数是否正确。然后验证所有节点的Merkle路径能否追溯到根哈希。最后确认每层的beam节点都被完整扩展了。所有验证都通过后，用户解密得到：Doc42是猫躺着，Doc17是猫跳跃，Doc89是猫玩耍。完美地找到了最相关的三张猫的图片！
+
+整个过程，云端自始至终都不知道查询的内容是什么，也不知道文档内容是什么，同时用户可以验证服务器返回的结果是正确和完整的。这就是VCSE-HST的完整流程。
 -->
 
 ---
