@@ -90,50 +90,48 @@ layout: default
 
 ## 我们的方案：VCSE-HST
 
-<br>
-
 ### 核心创新点
 
-<div class="grid grid-cols-2 gap-6 mt-6">
-  <div class="bg-blue-50 p-4 rounded-lg">
-    <h4 class="font-bold text-blue-800 mb-2">🌳 分层k-叉球形树</h4>
+<div class="grid grid-cols-2 gap-4 mt-4">
+  <div class="bg-gray-50 p-3 rounded">
+    <h4 class="font-bold mb-2">分层k-叉球形树</h4>
     <ul class="text-sm space-y-1">
-      <li>• 使用球形k-means递归聚类（k=10）</li>
-      <li>• 树深度仅3-4层（vs 二叉树的O(log₂ n)层）</li>
-      <li>• 每个节点10个分支，语义划分更细致</li>
+      <li>- 使用球形k-means递归聚类（k=10）</li>
+      <li>- 树深度仅3-4层</li>
+      <li>- 语义划分更细致</li>
     </ul>
   </div>
 
-  <div class="bg-green-50 p-4 rounded-lg">
-    <h4 class="font-bold text-green-800 mb-2">🔍 束搜索算法</h4>
+  <div class="bg-gray-50 p-3 rounded">
+    <h4 class="font-bold mb-2">束搜索算法</h4>
     <ul class="text-sm space-y-1">
-      <li>• 每层保持top-β个候选路径（β=beam size）</li>
-      <li>• 避免贪婪搜索的局部最优问题</li>
-      <li>• 灵活的准确率-效率权衡</li>
+      <li>- 每层保持top-β个候选路径</li>
+      <li>- 避免局部最优问题</li>
+      <li>- 灵活的准确率-效率权衡</li>
     </ul>
   </div>
 
-  <div class="bg-purple-50 p-4 rounded-lg">
-    <h4 class="font-bold text-purple-800 mb-2">✅ 分数正确性验证</h4>
+  <div class="bg-gray-50 p-3 rounded">
+    <h4 class="font-bold mb-2">分数正确性验证</h4>
     <ul class="text-sm space-y-1">
-      <li>• 基于双线性身份验证</li>
-      <li>• 验证返回分数的计算正确性</li>
-      <li>• 轻量级，仅需少量辅助系数</li>
+      <li>- 基于双线性恒等式</li>
+      <li>- 验证分数计算正确性</li>
+      <li>- 轻量级验证机制</li>
     </ul>
   </div>
 
-  <div class="bg-orange-50 p-4 rounded-lg">
-    <h4 class="font-bold text-orange-800 mb-2">🔐 Merkle完整性验证</h4>
+  <div class="bg-gray-50 p-3 rounded">
+    <h4 class="font-bold mb-2">Merkle完整性验证</h4>
     <ul class="text-sm space-y-1">
-      <li>• 基于Merkle树的执行完整性验证</li>
-      <li>• 确保路径完整性和结果包含性</li>
-      <li>• 每查询仅增加几毫秒开销</li>
+      <li>- 验证执行完整性</li>
+      <li>- 确保路径完整性</li>
+      <li>- 每查询仅增加几毫秒</li>
     </ul>
   </div>
 </div>
 
-<div class="mt-6 p-4 bg-gray-100 rounded-lg text-center">
-  <p class="font-semibold">🎯 在CIFAR-100和Caltech256上，beam=10时达到90% Recall@1，速度比LSH方法快7.5倍！</p>
+<div class="mt-4 p-3 bg-gray-50 rounded text-center">
+  <p class="font-semibold">CIFAR-100: 90% Recall@1, 速度比LSH快7.5倍</p>
 </div>
 
 <!--
@@ -157,55 +155,40 @@ layout: default
 ## 系统模型
 
 <div class="mt-4">
-  <div class="text-center text-sm text-gray-500 mb-2">图：系统架构模型（DO构建加密树→上传CS→DU查询→验证）</div>
+  <img src="./figures/system_model.png" alt="系统架构模型" class="w-5/12 mx-auto">
+  <div class="text-center text-sm text-gray-500 mt-2">图1：系统架构模型</div>
 </div>
 
-<div class="grid grid-cols-3 gap-6 mt-4">
-  <div class="bg-blue-50 p-4 rounded-lg">
-    <h3 class="text-lg font-bold text-blue-800 mb-3">数据所有者 (DO)</h3>
-    <ul class="text-sm space-y-2">
-      <li>① 生成密钥 SK=(M, M⁻¹, s, α, K_rule)</li>
-      <li>② 使用CLIP提取512维特征向量</li>
-      <li>③ 构建分层k-叉球形树索引</li>
-      <li>④ 加密索引节点和文档向量</li>
-      <li>⑤ 生成Merkle树根哈希</li>
-      <li>⑥ 上传加密数据和索引到云端</li>
+<div class="grid grid-cols-3 gap-4 mt-4">
+  <div class="bg-gray-50 p-3 rounded">
+    <h3 class="text-lg font-bold mb-2">数据所有者 (DO)</h3>
+    <ul class="text-sm space-y-1">
+      <li>生成密钥</li>
+      <li>CLIP提取特征</li>
+      <li>构建球形树索引</li>
+      <li>加密并上传</li>
     </ul>
   </div>
 
-  <div class="bg-green-50 p-4 rounded-lg">
-    <h3 class="text-lg font-bold text-green-800 mb-3">数据用户 (DU)</h3>
-    <ul class="text-sm space-y-2">
-      <li>① 从DO获取密钥SK</li>
-      <li>② 使用CLIP提取查询特征</li>
-      <li>③ 生成加密查询陷阱门</li>
-      <li>④ 提交陷阱门到云服务器</li>
-      <li>⑤ 接收加密结果和验证证明</li>
-      <li>⑥ 验证分数正确性和执行完整性</li>
-      <li>⑦ 解密并返回top-k结果</li>
+  <div class="bg-gray-50 p-3 rounded">
+    <h3 class="text-lg font-bold mb-2">数据用户 (DU)</h3>
+    <ul class="text-sm space-y-1">
+      <li>获取密钥</li>
+      <li>生成加密陷阱门</li>
+      <li>验证结果</li>
+      <li>解密top-k结果</li>
     </ul>
   </div>
 
-  <div class="bg-orange-50 p-4 rounded-lg">
-    <h3 class="text-lg font-bold text-orange-800 mb-3">云服务器 (CS)</h3>
-    <ul class="text-sm space-y-2">
-      <li>① 存储加密索引树和文档</li>
-      <li>② 接收用户的加密陷阱门</li>
-      <li>③ 执行束搜索算法（beam search）</li>
-      <li>④ 在密文上计算相似度分数</li>
-      <li>⑤ 生成Merkle验证路径</li>
-      <li>⑥ 返回top-k加密结果+证明</li>
+  <div class="bg-gray-50 p-3 rounded">
+    <h3 class="text-lg font-bold mb-2">云服务器 (CS)</h3>
+    <ul class="text-sm space-y-1">
+      <li>存储加密数据</li>
+      <li>执行束搜索</li>
+      <li>计算密文相似度</li>
+      <li>返回结果+证明</li>
     </ul>
   </div>
-</div>
-
-<div class="mt-6 p-4 bg-gray-50 rounded-lg">
-  <h4 class="font-bold text-gray-800 mb-2">关键特点</h4>
-  <ul class="text-sm space-y-1">
-    <li>• <strong>端到端加密</strong>：DO和DU掌握密钥，CS始终无法接触明文数据</li>
-    <li>• <strong>可验证计算</strong>：DU可验证CS返回结果的正确性和完整性</li>
-    <li>• <strong>高效检索</strong>：浅层树结构+束搜索，复杂度O(β·k·log_k n)</li>
-  </ul>
 </div>
 
 <!--
@@ -231,44 +214,27 @@ layout: two-cols-header
 ### 球形k-Means聚类
 
 **为什么用球形k-means？**
-- CLIP特征向量已经归一化到单位球面
-- 球面上距离用内积度量（cosine similarity）
-- 球形k-means直接在单位球面上聚类
+- CLIP特征向量已归一化到单位球面
+- 球面距离用内积度量
+- 直接在球面上聚类
 
 **算法步骤：**
-1. **初始化**：从数据中随机采样k个中心
-2. **分配**：将每个向量分配给内积最大的中心
-   $$\text{cluster}(i) = \arg\max_j \mathbf{d}_i^T \mathbf{c}_j$$
-3. **更新**：重新计算每个簇的中心并归一化
-   $$\mathbf{c}_j = \frac{\sum_{i \in C_j} \mathbf{d}_i}{\|\sum_{i \in C_j} \mathbf{d}_i\|_2}$$
-4. **迭代**：重复步骤2-3直到收敛
+1. 初始化k个中心
+2. 分配：$\text{cluster}(i) = \arg\max_j \mathbf{d}_i^T \mathbf{c}_j$
+3. 更新：$\mathbf{c}_j = \frac{\sum_{i \in C_j} \mathbf{d}_i}{\|\sum_{i \in C_j} \mathbf{d}_i\|_2}$
+4. 迭代直到收敛
 
 ::right::
 
-### 递归树构建
-
-**参数设置：**
-- 分支因子 k = 10
-- 最小簇大小 s_min = 20
-- 最大深度 h_max = 10（实际达到3-4层）
-
-**递归构建流程：**
-
-```
-BuildTree(vectors, k, s_min, h_max):
-  1. 计算当前节点的球心
-  2. 如果 |vectors| ≤ s_min 或 深度≥h_max:
-       返回叶节点（存储文档ID）
-  3. 否则：
-     - 运行球形k-means，得到k个簇
-     - 对每个簇递归调用BuildTree
-     - 返回内部节点（有k个子节点）
-```
+<div class="mt-2">
+  <img src="./figures/hierarchical_spherical_tree.png" alt="分层球形树结构" class="w-full">
+  <div class="text-center text-xs text-gray-500 mt-1">图2：分层球形树结构示意</div>
+</div>
 
 **树的特性：**
+- 分支因子 k = 10
 - 深度：3-4层（CIFAR-100: 50k图像）
-- 每个内部节点：10个子节点
-- 每个节点存储：加密的球心向量
+- 每个节点存储加密的球心向量
 
 <!--
 现在我们深入第一个核心技术：分层球形树的构建。
@@ -290,39 +256,27 @@ layout: default
 
 ## 核心技术2：束搜索算法
 
-<div class="grid grid-cols-2 gap-6 mt-4">
-  <div>
-    <h3 class="font-bold text-gray-800 mb-2">贪婪搜索的问题</h3>
-    <div class="bg-red-50 p-4 rounded-lg text-sm">
-      <p>• 每层只保留1条最优路径</p>
-      <p>• 容易陷入局部最优</p>
-      <p>• 无法纠错，一步走错全盘皆输</p>
-      <br>
-      <p class="font-semibold">例子：</p>
-      <p>第1层：选择了节点A（分数0.9）</p>
-      <p>第2层：A的最好子节点分数只有0.7</p>
-      <p>但节点B（分数0.85）的子节点可能有0.95！</p>
-      <p class="text-red-600 mt-2">→ 贪婪搜索错过了真正的最优结果</p>
-    </div>
+<div class="grid grid-cols-2 gap-4 mt-4">
+  <div class="bg-gray-50 p-3 rounded">
+    <h3 class="font-bold mb-2">贪婪搜索的问题</h3>
+    <ul class="text-sm space-y-1">
+      <li>- 每层只保留1条最优路径</li>
+      <li>- 容易陷入局部最优</li>
+      <li>- 无法纠错</li>
+    </ul>
   </div>
 
-  <div>
-    <h3 class="font-bold text-gray-800 mb-2">束搜索的优势</h3>
-    <div class="bg-green-50 p-4 rounded-lg text-sm">
-      <p>• 每层保留top-β条路径（β=beam size）</p>
-      <p>• 探索多条候选路径，全局剪枝</p>
-      <p>• 有纠错能力，避免局部最优</p>
-      <br>
-      <p class="font-semibold">例子（β=3）：</p>
-      <p>第1层：保留节点A、B、C（top-3）</p>
-      <p>第2层：扩展A的10个子节点、B的10个子节点、C的10个子节点，共30个节点</p>
-      <p>第2层：从30个节点中选择全局top-3</p>
-      <p class="text-green-600 mt-2">→ 即使A不是最优的，B的优秀子节点依然有机会！</p>
-    </div>
+  <div class="bg-gray-50 p-3 rounded">
+    <h3 class="font-bold mb-2">束搜索的优势</h3>
+    <ul class="text-sm space-y-1">
+      <li>- 每层保留top-β条路径</li>
+      <li>- 全局剪枝，避免局部最优</li>
+      <li>- 灵活的准确率-效率权衡</li>
+    </ul>
   </div>
 </div>
 
-<div class="mt-4 p-4 bg-blue-50 rounded-lg">
+<div class="mt-4 p-4 bg-gray-50 rounded-lg">
   <h4 class="font-bold text-blue-800 mb-2">算法流程</h4>
   <pre class="text-xs">
 初始化：Beam_0 = {根节点}
@@ -331,7 +285,7 @@ For 每一层 ℓ:
      - 如果是叶节点：保留
      - 如果是内部节点：扩展其所有子节点（10个）
   2. 计算所有候选节点与查询的相似度分数
-  3. 全局排序，保留top-β节点 → Beam_{ℓ+1}
+  3. 全局排序，保留top-β节点 Beam_{ℓ+1}
 返回：Beam最后一层的叶节点中的文档
   </pre>
 </div>
@@ -402,9 +356,9 @@ $$
 
 **分情况验证：**
 - 当s[j]=0时: $d_1[j]=d_2[j]=d[j]$, $q_1[j]+q_2[j]=q[j]$
-  $→ d[j](q_1[j]+q_2[j]) = d[j]q[j]$ ✓
+  $d[j](q_1[j]+q_2[j]) = d[j]q[j]$ ✓
 - 当s[j]=1时: $d_1[j]+d_2[j]=d[j]$, $q_1[j]=q_2[j]=q[j]$
-  $→ q[j](d_1[j]+d_2[j]) = d[j]q[j]$ ✓
+  $q[j](d_1[j]+d_2[j]) = d[j]q[j]$ ✓
 
 **结论：** 无论s如何，每一维贡献都等于原始内积！
 
@@ -444,7 +398,7 @@ layout: default
 **我们的目标：** 让用户能够验证服务器返回的每个分数是否计算正确
 
 <div class="grid grid-cols-2 gap-6 mt-6">
-  <div class="bg-blue-50 p-4 rounded-lg">
+  <div class="bg-gray-50 p-4 rounded-lg">
     <h4 class="font-bold text-blue-800 mb-3">双线性验证机制</h4>
     <p class="text-sm mb-2"><strong>核心思想：</strong>利用随机标签和秘密参数构建不可伪造的验证等式</p>
 
@@ -452,9 +406,9 @@ layout: default
       <p class="font-semibold mb-2">索引构建阶段（DO）：</p>
       <p class="mb-1">为每个文档生成：</p>
       <ul class="text-xs space-y-1 ml-4">
-        <li>• 加密向量 Ê</li>
-        <li>• 随机标签 t ∈ ℝ²ˡ</li>
-        <li>• 认证向量：α · E^auth + Ê = t</li>
+        <li>加密向量 Ê</li>
+        <li>随机标签 t ∈ ℝ²ˡ</li>
+        <li>认证向量：α · E^auth + Ê = t</li>
       </ul>
       <p class="text-xs mt-2 text-gray-600">其中α是秘密参数，只有DO和DU知道</p>
     </div>
@@ -463,42 +417,42 @@ layout: default
       <p class="font-semibold mb-2">查询阶段（DU）：</p>
       <p class="mb-1">为查询生成：</p>
       <ul class="text-xs space-y-1 ml-4">
-        <li>• 加密查询 T̂</li>
-        <li>• 随机标签 r ∈ ℝ²ˡ</li>
-        <li>• 认证向量：α · T^auth + T̂ = r</li>
+        <li>加密查询 T̂</li>
+        <li>随机标签 r ∈ ℝ²ˡ</li>
+        <li>认证向量：α · T^auth + T̂ = r</li>
       </ul>
     </div>
   </div>
 
-  <div class="bg-green-50 p-4 rounded-lg">
-    <h4 class="font-bold text-green-800 mb-3">验证流程</h4>
+  <div class="bg-gray-50 p-4 rounded-lg">
+    <h4 class="font-bold text-gray-800 mb-3">验证流程</h4>
 
     <div class="bg-white p-3 rounded text-sm">
       <p class="font-semibold mb-2">1️⃣ 服务器计算并返回：</p>
       <ul class="text-xs space-y-1 ml-4">
-        <li>• s = ⟨T̂, Ê⟩ （相似度分数）</li>
-        <li>• c₁ = ⟨T̂, E^auth⟩ + ⟨T^auth, Ê⟩</li>
-        <li>• c₂ = ⟨T^auth, E^auth⟩</li>
+        <li>s = ⟨T̂, Ê⟩ （相似度分数）</li>
+        <li>c₁ = ⟨T̂, E^auth⟩ + ⟨T^auth, Ê⟩</li>
+        <li>c₂ = ⟨T^auth, E^auth⟩</li>
       </ul>
     </div>
 
     <div class="bg-white p-3 rounded mt-3 text-sm">
       <p class="font-semibold mb-2">2️⃣ 用户验证双线性等式：</p>
-      <div class="bg-blue-50 p-2 rounded font-mono text-xs text-center my-2">
+      <div class="bg-gray-50 p-2 rounded font-mono text-xs text-center my-2">
         ⟨r, t⟩ = α² · c₂ + α · c₁ + s
       </div>
       <ul class="text-xs space-y-1">
-        <li>✓ 等式成立 → 分数正确</li>
-        <li>✗ 等式不成立 → 服务器作弊！</li>
+        <li>等式成立 分数正确</li>
+        <li>等式不成立 服务器作弊！</li>
       </ul>
     </div>
 
     <div class="bg-yellow-50 p-3 rounded mt-3 text-xs">
       <p class="font-semibold mb-1">🔒 安全性保证：</p>
       <ul class="space-y-1">
-        <li>• 服务器不知道 α、t、r</li>
-        <li>• 无法伪造满足等式的 (s, c₁, c₂)</li>
-        <li>• 任何篡改都会破坏等式</li>
+        <li>服务器不知道 α、t、r</li>
+        <li>无法伪造满足等式的 (s, c₁, c₂)</li>
+        <li>任何篡改都会破坏等式</li>
       </ul>
     </div>
   </div>
@@ -528,20 +482,20 @@ layout: default
 
 ## 分数正确性验证 - 具体例子
 
-### 📝 场景设定
+### 场景设定
 
 用户查询 **"cat"**，服务器返回 **文档ID=42**（一张猫的图片）
 
 <div class="grid grid-cols-2 gap-6 mt-4">
-  <div class="bg-green-50 p-4 rounded-lg">
-    <h4 class="font-bold text-green-800 mb-3">✅ 情况1：服务器诚实</h4>
+  <div class="bg-gray-50 p-4 rounded-lg">
+    <h4 class="font-bold text-gray-800 mb-3">情况1：服务器诚实</h4>
 
     <div class="bg-white p-3 rounded text-sm">
       <p class="font-semibold mb-2">服务器的计算：</p>
       <ul class="text-xs space-y-1">
-        <li>• 真实相似度分数：<span class="font-mono">s = 0.85</span></li>
-        <li>• 计算辅助系数：<span class="font-mono">c₁ = -3.2</span></li>
-        <li>• 计算辅助系数：<span class="font-mono">c₂ = 1.1</span></li>
+        <li>真实相似度分数：<span class="font-mono">s = 0.85</span></li>
+        <li>计算辅助系数：<span class="font-mono">c₁ = -3.2</span></li>
+        <li>计算辅助系数：<span class="font-mono">c₂ = 1.1</span></li>
       </ul>
       <p class="text-xs mt-2 text-gray-600">诚实地计算内积，返回真实值</p>
     </div>
@@ -550,7 +504,7 @@ layout: default
       <p class="font-semibold mb-2">用户的验证：</p>
       <p class="text-xs mb-2">假设秘密参数 α = 4，标签内积 ⟨r,t⟩ = 8.75</p>
 
-      <div class="bg-blue-50 p-2 rounded text-xs mb-2">
+      <div class="bg-gray-50 p-2 rounded text-xs mb-2">
         <p class="font-semibold">验证等式：</p>
         <p class="font-mono">⟨r, t⟩ = α² c₂ + α c₁ + s</p>
       </div>
@@ -564,21 +518,21 @@ layout: default
       <p class="font-mono text-xs ml-2">= 5.65 ... ≈ 8.75 ✓</p>
 
       <p class="text-xs mt-3 text-green-700 font-semibold">
-        ✓ 左边 = 右边，等式成立！<br>
-        → 验证通过，分数正确
+        左边 = 右边，等式成立！<br>
+        验证通过，分数正确
       </p>
     </div>
   </div>
 
-  <div class="bg-red-50 p-4 rounded-lg">
-    <h4 class="font-bold text-red-800 mb-3">❌ 情况2：服务器作弊</h4>
+  <div class="bg-gray-50 p-4 rounded-lg">
+    <h4 class="font-bold text-gray-800 mb-3">❌ 情况2：服务器作弊</h4>
 
     <div class="bg-white p-3 rounded text-sm">
       <p class="font-semibold mb-2">服务器偷懒：</p>
       <ul class="text-xs space-y-1">
-        <li>• 伪造高分数：<span class="font-mono text-red-600">s' = 0.90</span> （虚高0.05！）</li>
-        <li>• 但c₁和c₂无法伪造</li>
-        <li>• 因为不知道 t、r、α</li>
+        <li>伪造高分数：<span class="font-mono text-red-600">s' = 0.90</span> （虚高0.05！）</li>
+        <li>但c₁和c₂无法伪造</li>
+        <li>因为不知道 t、r、α</li>
       </ul>
       <p class="text-xs mt-2 text-red-600">想蒙混过关，提升排名</p>
     </div>
@@ -595,9 +549,9 @@ layout: default
       <p class="font-mono text-xs ml-2 text-red-600">= 5.70 ≠ 8.75 ✗</p>
 
       <p class="text-xs mt-3 text-red-700 font-semibold">
-        ✗ 左边 ≠ 右边，等式被破坏！<br>
-        → 检测到服务器篡改分数<br>
-        → 拒绝该结果！
+        左边 ≠ 右边，等式被破坏！<br>
+        检测到服务器篡改分数<br>
+        拒绝该结果！
       </p>
     </div>
 
@@ -609,7 +563,7 @@ layout: default
 </div>
 
 <div class="mt-4 text-center p-3 bg-gray-100 rounded-lg text-sm">
-  <p class="font-semibold">🎯 结论：双线性验证机制确保了分数的正确性，任何篡改都会被立即检测到！</p>
+  <p class="font-semibold">结论：双线性验证机制确保了分数的正确性，任何篡改都会被立即检测到！</p>
 </div>
 
 <!--
@@ -641,49 +595,49 @@ layout: default
 **分数验证的局限**：只能保证返回的分数没被篡改，但无法保证服务器真的按照束搜索算法执行了完整的搜索
 
 <div class="grid grid-cols-2 gap-4 mt-4">
-  <div class="bg-purple-50 p-4 rounded-lg text-sm">
-    <h4 class="font-bold text-purple-800 mb-2">Merkle树承诺机制</h4>
+  <div class="bg-gray-50 p-4 rounded-lg text-sm">
+    <h4 class="font-bold text-gray-800 mb-2">Merkle树承诺机制</h4>
 
-    <p class="font-semibold mb-2">🌳 数据所有者构建Merkle树：</p>
+    <p class="font-semibold mb-2">数据所有者构建Merkle树：</p>
     <ul class="text-xs space-y-1 mb-3">
-      <li>• <strong>叶节点哈希</strong>：H(ID || Ê || DocIDs || "LEAF")</li>
-      <li>• <strong>内部节点哈希</strong>：H(ID || Ê || H(child₁) || ... || H(child_k) || "INTERNAL")</li>
-      <li>• <strong>根哈希 H(root)</strong> 公开发布作为整棵树的承诺</li>
+      <li><strong>叶节点哈希</strong>：H(ID || Ê || DocIDs || "LEAF")</li>
+      <li><strong>内部节点哈希</strong>：H(ID || Ê || H(child₁) || ... || H(child_k) || "INTERNAL")</li>
+      <li><strong>根哈希 H(root)</strong> 公开发布作为整棵树的承诺</li>
     </ul>
 
     <div class="bg-white p-2 rounded">
       <p class="font-semibold text-xs mb-1">承诺的作用：</p>
       <ul class="text-xs space-y-1">
-        <li>✓ 任何节点的修改都会改变根哈希</li>
-        <li>✓ 服务器无法伪造节点而不被发现</li>
-        <li>✓ 所有节点通过Merkle路径追溯到根</li>
+        <li>任何节点的修改都会改变根哈希</li>
+        <li>服务器无法伪造节点而不被发现</li>
+        <li>所有节点通过Merkle路径追溯到根</li>
       </ul>
     </div>
   </div>
 
-  <div class="bg-blue-50 p-4 rounded-lg text-sm">
+  <div class="bg-gray-50 p-4 rounded-lg text-sm">
     <h4 class="font-bold text-blue-800 mb-2">验证流程</h4>
 
-    <p class="font-semibold mb-2">🔍 服务器返回（每一层）：</p>
+    <p class="font-semibold mb-2">服务器返回（每一层）：</p>
     <ul class="text-xs space-y-1 mb-3">
-      <li>• 当前beam中的节点ID</li>
-      <li>• 每个beam节点扩展出的<strong>所有</strong>子节点+分数</li>
-      <li>• 每个节点的Merkle包含证明（路径）</li>
-      <li>• 声称的下一层top-β节点</li>
+      <li>当前beam中的节点ID</li>
+      <li>每个beam节点扩展出的<strong>所有</strong>子节点+分数</li>
+      <li>每个节点的Merkle包含证明（路径）</li>
+      <li>声称的下一层top-β节点</li>
     </ul>
 
-    <p class="font-semibold mb-2">✅ 用户验证四项：</p>
+    <p class="font-semibold mb-2">用户验证四项：</p>
     <ul class="text-xs space-y-1">
-      <li>① 所有节点的Merkle路径能否追溯到根哈希</li>
-      <li>② 所有节点的分数是否正确（用分数验证）</li>
-      <li>③ 声称的top-β是否真的是全局top-β</li>
-      <li>④ 最终文档是否包含在叶节点中</li>
+      <li>1. 所有节点的Merkle路径能否追溯到根哈希</li>
+      <li>2. 所有节点的分数是否正确（用分数验证）</li>
+      <li>3. 声称的top-β是否真的是全局top-β</li>
+      <li>4. 最终文档是否包含在叶节点中</li>
     </ul>
   </div>
 </div>
 
 <div class="mt-3 p-3 bg-yellow-50 rounded-lg text-xs">
-  <p class="font-semibold mb-2">🔐 保证的完整性：</p>
+  <p class="font-semibold mb-2">保证的完整性：</p>
   <div class="grid grid-cols-3 gap-2">
     <div>
       <p class="font-semibold">路径完整性</p>
@@ -720,97 +674,97 @@ layout: default
 
 ## Merkle完整性验证 - 具体例子
 
-### 📝 场景设定
+### 场景设定
 
 **参数**：beam=3，树有2层，k=3（每节点3个子节点）
 **目标**：验证服务器是否完整执行束搜索
 
 <div class="grid grid-cols-2 gap-4 mt-4">
-  <div class="bg-green-50 p-4 rounded-lg text-sm">
-    <h4 class="font-bold text-green-800 mb-2">✅ 情况1：服务器诚实执行</h4>
+  <div class="bg-gray-50 p-4 rounded-lg text-sm">
+    <h4 class="font-bold text-gray-800 mb-2">情况1：服务器诚实执行</h4>
 
     <div class="bg-white p-3 rounded mt-2">
       <p class="font-semibold text-xs mb-2">第1层验证：</p>
       <ul class="text-xs space-y-1">
-        <li>• <strong>Beam₁ = {根节点R}</strong></li>
-        <li>• 服务器扩展R，返回3个子节点：</li>
-        <li class="ml-3">→ A(分数0.9), B(0.85), C(0.7)</li>
-        <li>• ① Merkle验证：H(R) = Hash(ID_R || Ê_R || H(A) || H(B) || H(C)) ✓</li>
-        <li>• ② 分数验证：A、B、C的分数（用双线性验证）✓</li>
-        <li>• ③ Top-β验证：{A,B,C}确实是top-3 ✓</li>
-        <li class="text-green-600 font-semibold mt-2">→ 第1层验证通过，Beam₂={A,B,C}</li>
+        <li><strong>Beam₁ = {根节点R}</strong></li>
+        <li>服务器扩展R，返回3个子节点：</li>
+        <li class="ml-3">A(分数0.9), B(0.85), C(0.7)</li>
+        <li>1. Merkle验证：H(R) = Hash(ID_R || Ê_R || H(A) || H(B) || H(C)) ✓</li>
+        <li>2. 分数验证：A、B、C的分数（用双线性验证）✓</li>
+        <li>3. Top-β验证：{A,B,C}确实是top-3 ✓</li>
+        <li class="text-green-600 font-semibold mt-2">第1层验证通过，Beam₂={A,B,C}</li>
       </ul>
     </div>
 
     <div class="bg-white p-3 rounded mt-3">
       <p class="font-semibold text-xs mb-2">第2层验证：</p>
       <ul class="text-xs space-y-1">
-        <li>• 服务器扩展A、B、C，返回<strong>9个</strong>子节点：</li>
-        <li class="ml-3">→ A的子节点：A1(0.88), A2(0.82), A3(0.75)</li>
-        <li class="ml-3">→ B的子节点：B1(0.80), B2(0.78), B3(0.72)</li>
-        <li class="ml-3">→ C的子节点：C1(0.68), C2(0.65), C3(0.60)</li>
-        <li>• ① 验证所有9个节点的Merkle路径 ✓</li>
-        <li>• ② 验证所有9个节点的分数 ✓</li>
-        <li>• ③ 服务器声称top-3：{A1, A2, B1}</li>
-        <li>• ④ 用户重新排序所有9个节点：</li>
+        <li>服务器扩展A、B、C，返回<strong>9个</strong>子节点：</li>
+        <li class="ml-3">A的子节点：A1(0.88), A2(0.82), A3(0.75)</li>
+        <li class="ml-3">B的子节点：B1(0.80), B2(0.78), B3(0.72)</li>
+        <li class="ml-3">C的子节点：C1(0.68), C2(0.65), C3(0.60)</li>
+        <li>1. 验证所有9个节点的Merkle路径 ✓</li>
+        <li>2. 验证所有9个节点的分数 ✓</li>
+        <li>3. 服务器声称top-3：{A1, A2, B1}</li>
+        <li>4. 用户重新排序所有9个节点：</li>
         <li class="ml-3">A1(0.88) > A2(0.82) > B1(0.80) > ...</li>
-        <li class="ml-3">→ 确认{A1,A2,B1}确实是全局top-3 ✓</li>
-        <li class="text-green-600 font-semibold mt-2">→ 验证通过！接受结果</li>
+        <li class="ml-3">确认{A1,A2,B1}确实是全局top-3 ✓</li>
+        <li class="text-green-600 font-semibold mt-2">验证通过！接受结果</li>
       </ul>
     </div>
   </div>
 
-  <div class="bg-red-50 p-4 rounded-lg text-sm">
-    <h4 class="font-bold text-red-800 mb-2">❌ 情况2：服务器作弊</h4>
+  <div class="bg-gray-50 p-4 rounded-lg text-sm">
+    <h4 class="font-bold text-gray-800 mb-2">❌ 情况2：服务器作弊</h4>
 
     <div class="bg-white p-3 rounded mt-2">
       <p class="font-semibold text-xs mb-2">第1层验证（同左）：</p>
       <ul class="text-xs space-y-1">
-        <li>• Beam₁ = {R}</li>
-        <li>• 服务器返回A(0.9), B(0.85), C(0.7)</li>
-        <li>• 所有验证通过 ✓</li>
-        <li>• Beam₂={A,B,C}</li>
+        <li>Beam₁ = {R}</li>
+        <li>服务器返回A(0.9), B(0.85), C(0.7)</li>
+        <li>所有验证通过 ✓</li>
+        <li>Beam₂={A,B,C}</li>
       </ul>
     </div>
 
     <div class="bg-white p-3 rounded mt-3 border-2 border-red-300">
       <p class="font-semibold text-xs mb-2 text-red-600">第2层验证（服务器偷懒）：</p>
       <ul class="text-xs space-y-1">
-        <li class="text-red-600 font-semibold">• 服务器偷懒：只扩展了A和B，<strong>跳过了C</strong>！</li>
-        <li>• 服务器只返回<strong>6个</strong>子节点：</li>
-        <li class="ml-3">→ A的子节点：A1(0.88), A2(0.82), A3(0.75)</li>
-        <li class="ml-3">→ B的子节点：B1(0.80), B2(0.78), B3(0.72)</li>
-        <li class="ml-3 text-red-600">→ C的子节点：<strong>缺失！</strong></li>
-        <li class="mt-2">• 用户检查：</li>
-        <li class="ml-3">① Beam₂有{A, B, C}三个节点</li>
-        <li class="ml-3 text-red-600">② 但C没有被扩展！C的3个子节点去哪了？</li>
-        <li class="ml-3 text-red-600">③ ✗ 检测到路径不完整！</li>
-        <li class="text-red-600 font-semibold mt-3">→ 拒绝结果！服务器偷工减料被抓到！</li>
+        <li class="text-red-600 font-semibold">服务器偷懒：只扩展了A和B，<strong>跳过了C</strong>！</li>
+        <li>服务器只返回<strong>6个</strong>子节点：</li>
+        <li class="ml-3">A的子节点：A1(0.88), A2(0.82), A3(0.75)</li>
+        <li class="ml-3">B的子节点：B1(0.80), B2(0.78), B3(0.72)</li>
+        <li class="ml-3 text-red-600">C的子节点：<strong>缺失！</strong></li>
+        <li class="mt-2">用户检查：</li>
+        <li class="ml-3">1. Beam₂有{A, B, C}三个节点</li>
+        <li class="ml-3 text-red-600">2. 但C没有被扩展！C的3个子节点去哪了？</li>
+        <li class="ml-3 text-red-600">3. 检测到路径不完整！</li>
+        <li class="text-red-600 font-semibold mt-3">拒绝结果！服务器偷工减料被抓到！</li>
       </ul>
     </div>
 
     <div class="bg-yellow-50 p-2 rounded mt-3 text-xs">
       <p class="font-semibold mb-1">为什么会作弊？</p>
-      <p>• C的分数较低(0.7)，服务器认为它的子节点不可能进top-3</p>
-      <p>• 但束搜索要求<strong>必须扩展beam中的所有节点</strong></p>
-      <p>• Merkle验证强制服务器诚实执行完整路径</p>
+      <p>C的分数较低(0.7)，服务器认为它的子节点不可能进top-3</p>
+      <p>但束搜索要求<strong>必须扩展beam中的所有节点</strong></p>
+      <p>Merkle验证强制服务器诚实执行完整路径</p>
     </div>
   </div>
 </div>
 
-<div class="mt-3 p-3 bg-blue-50 rounded-lg text-xs">
-  <p class="font-semibold mb-2">💡 关键洞察：</p>
+<div class="mt-3 p-3 bg-gray-50 rounded-lg text-xs">
+  <p class="font-semibold mb-2">关键洞察：</p>
   <div class="grid grid-cols-2 gap-3">
     <div>
       <p class="font-semibold">双重验证保障：</p>
-      <p>• <strong>分数验证</strong>：保证每个节点的分数没被篡改</p>
-      <p>• <strong>Merkle验证</strong>：保证每层的beam节点都被完整扩展</p>
+      <p><strong>分数验证</strong>：保证每个节点的分数没被篡改</p>
+      <p><strong>Merkle验证</strong>：保证每层的beam节点都被完整扩展</p>
     </div>
     <div>
       <p class="font-semibold">验证开销：</p>
-      <p>• 每查询增加<strong>几毫秒</strong></p>
-      <p>• 随beam size线性增长：O(β·k·depth)</p>
-      <p>• 值得付出的代价：换取可验证性</p>
+      <p>每查询增加<strong>几毫秒</strong></p>
+      <p>随beam size线性增长：O(β·k·depth)</p>
+      <p>值得付出的代价：换取可验证性</p>
     </div>
   </div>
 </div>
@@ -842,63 +796,63 @@ layout: two-cols-header
 ### 完整流程
 
 **1. 索引构建阶段（数据所有者）**
-<div class="bg-blue-50 p-3 rounded text-xs mt-2">
-  <p>• CLIP提取512维特征 → L2归一化</p>
-  <p>• 球形k-means聚类 → 构建k-叉球形树（k=10，深度3-4层）</p>
-  <p>• <strong>ASPE加密</strong>：对所有节点向量和文档向量加密</p>
-  <p>• <strong>Merkle树</strong>：为每个节点生成哈希承诺</p>
-  <p>• <strong>上传</strong>：加密树索引 + 根哈希H(root)至云端</p>
+<div class="bg-gray-50 p-3 rounded text-xs mt-2">
+  <p>CLIP提取512维特征 L2归一化</p>
+  <p>球形k-means聚类 构建k-叉球形树（k=10，深度3-4层）</p>
+  <p><strong>ASPE加密</strong>：对所有节点向量和文档向量加密</p>
+  <p><strong>Merkle树</strong>：为每个节点生成哈希承诺</p>
+  <p><strong>上传</strong>：加密树索引 + 根哈希H(root)至云端</p>
 </div>
 
 **2. 查询检索阶段（数据用户）**
-<div class="bg-green-50 p-3 rounded text-xs mt-2">
-  <p>• CLIP提取查询特征 → L2归一化</p>
-  <p>• <strong>生成陷阱门</strong>：ASPE加密查询向量</p>
-  <p>• <strong>云端执行束搜索</strong>：</p>
-  <p class="ml-3">→ 从根节点开始，逐层扩展beam中的所有节点</p>
-  <p class="ml-3">→ 每层保留top-β候选节点（避免局部最优）</p>
-  <p class="ml-3">→ 返回最终top-k文档 + 验证证明</p>
-  <p>• <strong>验证</strong>：用户验证分数正确性 + 路径完整性</p>
-  <p>• <strong>解密结果</strong>：获取top-k文档ID</p>
+<div class="bg-gray-50 p-3 rounded text-xs mt-2">
+  <p>CLIP提取查询特征 L2归一化</p>
+  <p><strong>生成陷阱门</strong>：ASPE加密查询向量</p>
+  <p><strong>云端执行束搜索</strong>：</p>
+  <p class="ml-3">从根节点开始，逐层扩展beam中的所有节点</p>
+  <p class="ml-3">每层保留top-β候选节点（避免局部最优）</p>
+  <p class="ml-3">返回最终top-k文档 + 验证证明</p>
+  <p><strong>验证</strong>：用户验证分数正确性 + 路径完整性</p>
+  <p><strong>解密结果</strong>：获取top-k文档ID</p>
 </div>
 
 ::right::
 
-### 📝 示例：检索"猫"的图片
+### 示例：检索"猫"的图片
 
 **参数**：beam=3, k=3, 返回top-3结果
 
 <div class="bg-white p-3 rounded border-2 border-gray-200 text-xs mt-3">
   <p class="font-semibold mb-2">1️⃣ 数据所有者准备（离线）：</p>
-  <p>• 有1000张图片 → CLIP提取特征</p>
-  <p>• 构建3层球形树，每节点3个子节点</p>
-  <p>• ASPE加密所有向量 → 计算Merkle树</p>
-  <p>• 上传：Enc(Tree) + H(root)</p>
+  <p>有1000张图片 CLIP提取特征</p>
+  <p>构建3层球形树，每节点3个子节点</p>
+  <p>ASPE加密所有向量 计算Merkle树</p>
+  <p>上传：Enc(Tree) + H(root)</p>
 </div>
 
 <div class="bg-white p-3 rounded border-2 border-blue-200 text-xs mt-2">
   <p class="font-semibold mb-2">2️⃣ 用户查询"cat"：</p>
-  <p>• CLIP提取查询特征q → ASPE加密 → q̃</p>
-  <p>• 发送陷阱门q̃到云端</p>
+  <p>CLIP提取查询特征q ASPE加密 q̃</p>
+  <p>发送陷阱门q̃到云端</p>
 </div>
 
 <div class="bg-white p-3 rounded border-2 border-green-200 text-xs mt-2">
   <p class="font-semibold mb-2">3️⃣ 云端束搜索（在线）：</p>
-  <p>• 第1层：Beam₁={R}，扩展根节点</p>
-  <p class="ml-3">→ 返回3个子节点：A(0.9), B(0.85), C(0.7)</p>
-  <p>• 第2层：Beam₂={A,B,C}，扩展所有3个节点</p>
-  <p class="ml-3">→ 9个子节点，保留top-3：{A1, A2, B1}</p>
-  <p>• 第3层：Beam₃={A1,A2,B1}，扩展到叶子</p>
-  <p class="ml-3">→ 9个文档，保留top-3：{Doc42, Doc17, Doc89}</p>
-  <p>• 返回：加密文档ID + 所有节点的验证证明</p>
+  <p>第1层：Beam₁={R}，扩展根节点</p>
+  <p class="ml-3">返回3个子节点：A(0.9), B(0.85), C(0.7)</p>
+  <p>第2层：Beam₂={A,B,C}，扩展所有3个节点</p>
+  <p class="ml-3">9个子节点，保留top-3：{A1, A2, B1}</p>
+  <p>第3层：Beam₃={A1,A2,B1}，扩展到叶子</p>
+  <p class="ml-3">9个文档，保留top-3：{Doc42, Doc17, Doc89}</p>
+  <p>返回：加密文档ID + 所有节点的验证证明</p>
 </div>
 
 <div class="bg-white p-3 rounded border-2 border-purple-200 text-xs mt-2">
   <p class="font-semibold mb-2">4️⃣ 用户验证并解密：</p>
-  <p>• ✓ 验证所有节点的分数（双线性验证）</p>
-  <p>• ✓ 验证Merkle路径追溯到H(root)</p>
-  <p>• ✓ 验证每层beam节点都被完整扩展</p>
-  <p>• 解密：{Doc42:猫躺着, Doc17:猫跳跃, Doc89:猫玩耍}</p>
+  <p>验证所有节点的分数（双线性验证）</p>
+  <p>验证Merkle路径追溯到H(root)</p>
+  <p>验证每层beam节点都被完整扩展</p>
+  <p>解密：{Doc42:猫躺着, Doc17:猫跳跃, Doc89:猫玩耍}</p>
 </div>
 
 <!--
@@ -930,53 +884,52 @@ layout: default
 ### 数据集与设置
 
 <div class="grid grid-cols-3 gap-4 text-sm mb-4">
-  <div class="bg-blue-50 p-3 rounded">
+  <div class="bg-gray-50 p-3 rounded">
     <p class="font-semibold">数据集</p>
-    <p>• CIFAR-100: 50,000图像, 100查询</p>
-    <p>• Caltech256: 30,607图像, 257查询</p>
+    <p>CIFAR-100: 50,000图像, 100查询</p>
+    <p>Caltech256: 30,607图像, 257查询</p>
   </div>
-  <div class="bg-green-50 p-3 rounded">
+  <div class="bg-gray-50 p-3 rounded">
     <p class="font-semibold">特征提取</p>
-    <p>• CLIP ViT-B/32</p>
-    <p>• 512维特征向量</p>
-    <p>• L2归一化</p>
+    <p>CLIP ViT-B/32</p>
+    <p>512维特征向量</p>
+    <p>L2归一化</p>
   </div>
-  <div class="bg-purple-50 p-3 rounded">
+  <div class="bg-gray-50 p-3 rounded">
     <p class="font-semibold">参数</p>
-    <p>• 分支因子 k=10</p>
-    <p>• Beam size β∈{3,7,10}</p>
-    <p>• 树深度: 3-4层</p>
+    <p>分支因子 k=10</p>
+    <p>Beam size β∈{3,7,10}</p>
+    <p>树深度: 3-4层</p>
   </div>
 </div>
 
 ### 性能对比（CIFAR-100）
 
-<div class="text-xs">
-
-| 方案 | Recall@1 | Recall@5 | Recall@10 | 搜索时间(ms) | 加速比 |
-|------|----------|----------|-----------|------------|---------|
-| Cross-Model-SE (LSH) | 90% | 97% | 98% | 57.47 | 1.0× |
-| Linear Search | 90% | 97% | 98% | 144.44 | 0.4× |
-| **VCSE-HST (β=3)** | **83%** | **96%** | **97%** | **2.91** | **19.7×** |
-| **VCSE-HST (β=7)** | **89%** | **97%** | **98%** | **6.39** | **9.0×** |
-| **VCSE-HST (β=10)** | **90%** | **97%** | **99%** | **7.66** | **7.5×** |
-
+<div class="grid grid-cols-2 gap-4 mt-2">
+  <div>
+    <img src="./figures/paper_accuracy_comparison.png" alt="准确率对比" class="w-full">
+    <div class="text-center text-xs text-gray-500 mt-1">准确率对比</div>
+  </div>
+  <div>
+    <img src="./figures/paper_search_time_comparison.png" alt="搜索时间对比" class="w-full">
+    <div class="text-center text-xs text-gray-500 mt-1">搜索时间对比</div>
+  </div>
 </div>
 
 ### 关键发现
 
 <div class="grid grid-cols-2 gap-4 mt-4 text-sm">
   <div class="bg-yellow-50 p-3 rounded">
-    <p class="font-semibold mb-2">🎯 准确率-效率权衡</p>
-    <p>• β=10: 90% R@1，7.5×加速</p>
-    <p>• β=3: 83% R@1，19.7×加速</p>
-    <p>• 灵活可调，适应不同场景</p>
+    <p class="font-semibold mb-2">准确率-效率权衡</p>
+    <p>β=10: 90% R@1，7.5×加速</p>
+    <p>β=3: 83% R@1，19.7×加速</p>
+    <p>灵活可调，适应不同场景</p>
   </div>
-  <div class="bg-orange-50 p-3 rounded">
-    <p class="font-semibold mb-2">⚡ 验证开销</p>
-    <p>• Merkle验证：几毫秒/查询</p>
-    <p>• 随beam size线性增长</p>
-    <p>• 可实用的完整性保证</p>
+  <div class="bg-gray-50 p-3 rounded">
+    <p class="font-semibold mb-2">验证开销</p>
+    <p>Merkle验证：几毫秒/查询</p>
+    <p>随beam size线性增长</p>
+    <p>可实用的完整性保证</p>
   </div>
 </div>
 
@@ -1001,32 +954,32 @@ layout: default
 ## 维度降低分析：意外的发现
 
 <div class="grid grid-cols-2 gap-6 mt-4">
-  <div class="bg-blue-50 p-4 rounded-lg text-sm">
+  <div class="bg-gray-50 p-4 rounded-lg text-sm">
     <h4 class="font-bold text-blue-800 mb-2">方差引导的维度降低</h4>
     <p class="mb-2">核心思想：去除低方差维度</p>
     <ul class="space-y-1">
-      <li>• 计算每个维度的方差</li>
-      <li>• 选择方差最小的k个维度删除</li>
-      <li>• k = ⌊d × k_ratio⌋</li>
-      <li>• 用AES加密压缩规则，确保客户端和服务器一致</li>
+      <li>计算每个维度的方差</li>
+      <li>选择方差最小的k个维度删除</li>
+      <li>k = ⌊d × k_ratio⌋</li>
+      <li>用AES加密压缩规则，确保客户端和服务器一致</li>
     </ul>
     <br>
     <p class="font-semibold mb-1">动机：</p>
-    <p>• 减少内存和通信开销</p>
-    <p>• 低方差维度鉴别能力弱，可能是噪声</p>
+    <p>减少内存和通信开销</p>
+    <p>低方差维度鉴别能力弱，可能是噪声</p>
   </div>
 
-  <div class="bg-green-50 p-4 rounded-lg text-sm">
-    <h4 class="font-bold text-green-800 mb-2">🔍 非单调的准确率曲线</h4>
+  <div class="bg-gray-50 p-4 rounded-lg text-sm">
+    <h4 class="font-bold text-gray-800 mb-2">非单调的准确率曲线</h4>
     <p class="mb-2 font-semibold">CIFAR-100上的Recall@1（beam=10）：</p>
     <ul class="space-y-1 text-xs">
-      <li>• 0% 压缩: 90% R@1 （基线）</li>
-      <li>• 2.5% 压缩: <span class="text-green-600 font-semibold">92% R@1 ↑</span></li>
-      <li>• 5% 压缩: <span class="text-green-600 font-semibold">93% R@1 ↑</span> (峰值！)</li>
-      <li>• 7.5% 压缩: 90% R@1</li>
-      <li>• 10% 压缩: 88% R@1 ↓</li>
-      <li>• 15% 压缩: 84% R@1 ↓</li>
-      <li>• 20% 压缩: 82% R@1 ↓</li>
+      <li>0% 压缩: 90% R@1 （基线）</li>
+      <li>2.5% 压缩: <span class="text-green-600 font-semibold">92% R@1 ↑</span></li>
+      <li>5% 压缩: <span class="text-green-600 font-semibold">93% R@1 ↑</span> (峰值！)</li>
+      <li>7.5% 压缩: 90% R@1</li>
+      <li>10% 压缩: 88% R@1 ↓</li>
+      <li>15% 压缩: 84% R@1 ↓</li>
+      <li>20% 压缩: 82% R@1 ↓</li>
     </ul>
     <br>
     <p class="font-semibold text-green-700">意外发现：适度压缩（5%）反而提升3%准确率！</p>
@@ -1039,9 +992,9 @@ layout: default
   <p class="mb-2">余弦相似度近似：</p>
   <p class="font-mono text-xs mb-2">cos(q,d) ≈ ⟨s_q, s_d⟩ + ⟨η_q, η_d⟩ / √[(‖s_q‖²+‖η_q‖²)(‖s_d‖²+‖η_d‖²)]</p>
   <ul class="space-y-1">
-    <li>• 去除低方差维度 → 减少分母和η项方差</li>
-    <li>• 提升信噪比 → 改善聚类质量和球心稳定性</li>
-    <li>• 过度压缩 → 开始丢失有用信号 → 准确率下降</li>
+    <li>去除低方差维度 减少分母和η项方差</li>
+    <li>提升信噪比 改善聚类质量和球心稳定性</li>
+    <li>过度压缩 开始丢失有用信号 准确率下降</li>
   </ul>
   <p class="mt-2 font-semibold">结论：5%压缩是最优点，平衡了噪声消除和信号保留</p>
 </div>
@@ -1072,61 +1025,61 @@ layout: two-cols-header
 
 ### 📌 核心贡献总结
 
-<div class="bg-blue-50 p-3 rounded-lg text-sm mb-3">
+<div class="bg-gray-50 p-3 rounded-lg text-sm mb-3">
   <p class="font-semibold mb-2">技术创新：</p>
   <ul class="space-y-1 text-xs">
-    <li>✓ 分层k-叉球形树（k=10，深度3-4层）</li>
-    <li>✓ 束搜索算法（避免局部最优）</li>
-    <li>✓ ASPE加密（内积保持）</li>
-    <li>✓ 分数正确性验证（双线性验证）</li>
-    <li>✓ Merkle完整性验证（路径完整性）</li>
+    <li>分层k-叉球形树（k=10，深度3-4层）</li>
+    <li>束搜索算法（避免局部最优）</li>
+    <li>ASPE加密（内积保持）</li>
+    <li>分数正确性验证（双线性验证）</li>
+    <li>Merkle完整性验证（路径完整性）</li>
   </ul>
 </div>
 
-<div class="bg-green-50 p-3 rounded-lg text-sm">
+<div class="bg-gray-50 p-3 rounded-lg text-sm">
   <p class="font-semibold mb-2">实验成果：</p>
   <ul class="space-y-1 text-xs">
-    <li>✓ CIFAR-100: 90% R@1，7.5×加速</li>
-    <li>✓ 灵活的准确率-效率权衡（β∈{3,7,10}）</li>
-    <li>✓ 轻量级验证（几毫秒/查询）</li>
+    <li>CIFAR-100: 90% R@1，7.5×加速</li>
+    <li>灵活的准确率-效率权衡（β∈{3,7,10}）</li>
+    <li>轻量级验证（几毫秒/查询）</li>
   </ul>
 </div>
 
-### ⚠️ 局限性
+### 局限性
 
 <ul class="text-xs space-y-1 mt-3">
-  <li>• <strong>访问模式泄露</strong>：无法隐藏哪些文档被返回（需ORAM）</li>
-  <li>• <strong>搜索模式泄露</strong>：无法隐藏访问了哪些树节点</li>
-  <li>• <strong>静态设置</strong>：不支持动态更新，需要重建索引</li>
-  <li>• <strong>Beam搜索近似</strong>：不保证全局top-k最优</li>
+  <li><strong>访问模式泄露</strong>：无法隐藏哪些文档被返回（需ORAM）</li>
+  <li><strong>搜索模式泄露</strong>：无法隐藏访问了哪些树节点</li>
+  <li><strong>静态设置</strong>：不支持动态更新，需要重建索引</li>
+  <li><strong>Beam搜索近似</strong>：不保证全局top-k最优</li>
 </ul>
 
 ::right::
 
-### 🚀 未来研究方向
+### 未来研究方向
 
-<div class="bg-purple-50 p-3 rounded-lg text-sm mb-3">
+<div class="bg-gray-50 p-3 rounded-lg text-sm mb-3">
   <p class="font-semibold mb-2">1. 动态更新支持</p>
-  <p class="text-xs">• 支持增删改操作，无需重建整棵树</p>
-  <p class="text-xs">• 研究前向/后向安全性</p>
+  <p class="text-xs">支持增删改操作，无需重建整棵树</p>
+  <p class="text-xs">研究前向/后向安全性</p>
 </div>
 
-<div class="bg-orange-50 p-3 rounded-lg text-sm mb-3">
+<div class="bg-gray-50 p-3 rounded-lg text-sm mb-3">
   <p class="font-semibold mb-2">2. 自适应束搜索</p>
-  <p class="text-xs">• 根据查询特征动态调整beam size</p>
-  <p class="text-xs">• 简单查询用小beam，复杂查询用大beam</p>
+  <p class="text-xs">根据查询特征动态调整beam size</p>
+  <p class="text-xs">简单查询用小beam，复杂查询用大beam</p>
 </div>
 
 <div class="bg-yellow-50 p-3 rounded-lg text-sm mb-3">
   <p class="font-semibold mb-2">3. 隐藏访问模式</p>
-  <p class="text-xs">• 结合ORAM技术隐藏访问模式</p>
-  <p class="text-xs">• 探索效率与隐私的折中方案</p>
+  <p class="text-xs">结合ORAM技术隐藏访问模式</p>
+  <p class="text-xs">探索效率与隐私的折中方案</p>
 </div>
 
 <div class="bg-pink-50 p-3 rounded-lg text-sm">
   <p class="font-semibold mb-2">4. 更大规模数据集</p>
-  <p class="text-xs">• 扩展到百万级图像数据集</p>
-  <p class="text-xs">• 研究混合索引结构（树+LSH）</p>
+  <p class="text-xs">扩展到百万级图像数据集</p>
+  <p class="text-xs">研究混合索引结构（树+LSH）</p>
 </div>
 
 <!--
