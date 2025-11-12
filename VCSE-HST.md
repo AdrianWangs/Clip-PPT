@@ -653,7 +653,7 @@ layout: two-cols-header
 
 ::left::
 
-### 📌 核心贡献
+### 核心贡献
 
 - 树+束搜索：纠错避免局部最优
 - ASPE：密文内积保持
@@ -717,17 +717,12 @@ layout: end
   </div>
 </div>
 
-<div class="mt-12 text-center p-6 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg">
-  <p class="text-2xl font-bold mb-4">VCSE-HST</p>
-  <p class="text-xl mb-2">90% Recall@1 + 7.5× 加速</p>
-  <p class="text-sm text-gray-600">高效 · 安全 · 可验证的跨模态可搜索加密</p>
-</div>
 
 <div class="mt-8 text-center text-sm text-gray-500">
   <p>Yuzhe Wang · 华东师范大学</p>
-  <p>IEEE Transactions on Services Computing</p>
 </div>
 
 <!--
 我的分享就到这里，感谢大家的聆听！欢迎大家提问和讨论。
+下面是我对于这篇论文主要的贡献点，欢迎大家提问和质疑
 -->
