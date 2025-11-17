@@ -394,13 +394,16 @@ k-means聚类的优势是减少了搜索空间。原本需要在全部n个文件
 layout: default
 ---
 
-## 二叉树搜索示例
 
-<div class="flex justify-center items-center mt-8">
+## 二叉树搜索示例
+<div class="grid grid-cols-5 gap-0 h-full place-items-center">
+
+<div class="col-span-3 flex justify-center items-center mt-8">
   <img src="https://cdn-mineru.openxlab.org.cn/result/2025-10-21/99ec5320-3a91-4791-a67b-f4c5f4535912/f82c7f1d63131f0742d8ef6f2319562d43404ab1ed9b00f9d4a4e6908b490e76.jpg" alt="二叉树搜索示例" class="w-9/12">
 </div>
 
-<div class="mt-6 text-sm">
+
+<div class="col-span-2 mt-6 text-sm">
 
 **场景：** 关键词集合 $\{w_1, w_2, w_3\}$，查询向量 $\mathbf{q} = (0.1, 0.5, 0.2)$，搜索Top-2
 
@@ -413,7 +416,7 @@ layout: default
 6. 最终结果：$\mathbf{d}_1$ (0.46)、$\mathbf{d}_6$ (0.40)
 
 </div>
-
+</div>
 <!--
 现在我们通过一个具体的例子来理解二叉树搜索的过程。
 
@@ -712,13 +715,16 @@ $$\mathcal{S}(\widehat{\mathbf{c}}_y \cdot \widehat{\mathbf{P}}_{ver}, \widehat{
 layout: default
 ---
 
+<!--TODO 这一块文字部分不要花里胡哨的，直接markdown，防止无法渲染公式，在右半页自上而下排版就行-->
 ## 动态更新操作示例
 
-<div class="flex justify-center items-center mt-6">
+<div class="grid grid-cols-5 gap-0 h-full place-items-center">
+
+<div class="col-span-3 flex justify-center items-center mt-6">
   <img src="https://cdn-mineru.openxlab.org.cn/result/2025-10-21/99ec5320-3a91-4791-a67b-f4c5f4535912/a36c1fb24cd44737174aa7a79c2efd5fc45555bcfe70cbe97a400bb2d4abee53.jpg" alt="文件更新示例" class="w-10/12">
 </div>
 
-<div class="mt-6 grid grid-cols-3 gap-6">
+<div class="col-span-2 mt-6 grid grid-cols-3 gap-6">
 
 <div class="text-center p-4 bg-blue-50 rounded">
   <p class="font-semibold text-blue-700">文件修改</p>
@@ -744,6 +750,7 @@ layout: default
   <p class="text-xs mt-2 font-semibold">复杂度: $O(\log L_y)$</p>
 </div>
 
+</div>
 </div>
 
 <!--
