@@ -712,46 +712,22 @@ $$\mathcal{S}(\widehat{\mathbf{c}}_y \cdot \widehat{\mathbf{P}}_{ver}, \widehat{
 -->
 
 ---
-layout: default
+layout: two-cols-header
 ---
 
-<!--TODO 这一块文字部分不要花里胡哨的，直接markdown，防止无法渲染公式，在右半页自上而下排版就行-->
 ## 动态更新操作示例
 
-<div class="grid grid-cols-5 gap-0 h-full place-items-center">
+::left::
 
-<div class="col-span-3 flex justify-center items-center mt-6">
-  <img src="https://cdn-mineru.openxlab.org.cn/result/2025-10-21/99ec5320-3a91-4791-a67b-f4c5f4535912/a36c1fb24cd44737174aa7a79c2efd5fc45555bcfe70cbe97a400bb2d4abee53.jpg" alt="文件更新示例" class="w-10/12">
-</div>
+<img src="https://cdn-mineru.openxlab.org.cn/result/2025-10-21/99ec5320-3a91-4791-a67b-f4c5f4535912/a36c1fb24cd44737174aa7a79c2efd5fc45555bcfe70cbe97a400bb2d4abee53.jpg" alt="文件更新示例" class="w-10/12 mx-auto">
+<div class="text-center text-xs text-gray-500 mt-1">图：文件更新操作示例</div>
 
-<div class="col-span-2 mt-6 grid grid-cols-3 gap-6">
+::right::
 
-<div class="text-center p-4 bg-blue-50 rounded">
-  <p class="font-semibold text-blue-700">文件修改</p>
-  <p class="text-sm mt-2">$\mathbf{d}_1 \to \mathbf{d}_1'$</p>
-  <p class="text-xs mt-2 text-gray-600">更新路径节点</p>
-  <p class="text-xs text-gray-600">版本号 $ver' = 1$</p>
-  <p class="text-xs mt-2 font-semibold">复杂度: $O(\log L_y)$</p>
-</div>
-
-<div class="text-center p-4 bg-green-50 rounded">
-  <p class="font-semibold text-green-700">文件删除</p>
-  <p class="text-sm mt-2">删除 $\mathbf{d}_2$</p>
-  <p class="text-xs mt-2 text-gray-600">设置为零向量</p>
-  <p class="text-xs text-gray-600">版本号 $ver' = 2$</p>
-  <p class="text-xs mt-2 font-semibold">复杂度: $O(\log L_y)$</p>
-</div>
-
-<div class="text-center p-4 bg-red-50 rounded">
-  <p class="font-semibold text-red-700">文件添加</p>
-  <p class="text-sm mt-2">添加 $\mathbf{d}_5$</p>
-  <p class="text-xs mt-2 text-gray-600">创建新节点</p>
-  <p class="text-xs text-gray-600">版本号 $ver' = 3$</p>
-  <p class="text-xs mt-2 font-semibold">复杂度: $O(\log L_y)$</p>
-</div>
-
-</div>
-</div>
+- **文件修改**：$\mathbf{d}_1 \to \mathbf{d}_1'$，更新从叶到根路径，版本号 $ver' = 1$
+- **文件删除**：删除 $\mathbf{d}_2$，设置为零向量，版本号 $ver' = 2$
+- **文件添加**：添加 $\mathbf{d}_5$，创建新的叶节点和父节点，版本号 $ver' = 3$
+- **时间复杂度**：三种操作的复杂度均为 $O(\log L_y)$
 
 <!--
 现在我们来看ML-RKS+如何处理动态更新操作。上面这张图展示了一个簇c1的二叉树，初始包含4个文件d1到d4，版本号为0。
@@ -1014,100 +990,58 @@ layout: two-cols-header
 
 
 ---
-layout: default
+layout: two-cols-header
 ---
-
-<!--TODO 这里要重新布局，因为文字展示不全-->
 
 ## 实验结果：搜索准确率
 
-<div class="grid grid-cols-2 gap-8 items-start">
+::left::
 
-<div>
+<img src="https://cdn-mineru.openxlab.org.cn/result/2025-10-21/99ec5320-3a91-4791-a67b-f4c5f4535912/37a1b300aa569043756e754f8e480d41bbca50c1a4614598f3ee312f6358add1.jpg" alt="搜索准确率" class="w-11/12 mx-auto">
+<div class="text-center text-xs text-gray-500 mt-1">图：搜索准确率对比</div>
 
-<img src="https://cdn-mineru.openxlab.org.cn/result/2025-10-21/99ec5320-3a91-4791-a67b-f4c5f4535912/37a1b300aa569043756e754f8e480d41bbca50c1a4614598f3ee312f6358add1.jpg" alt="搜索准确率" class="w-full">
+::right::
 
-</div>
-
-<div>
-
-### 方案对比
-
-**ML-RKS/ML-RKS+ (1)：**
-- 只从选中簇返回Top-k
-- 准确率略低于RKS/RKS+
-- 效率最高
-
-**ML-RKS/ML-RKS+ (5)：**
-- 从所有簇检查并返回Top-k
-- 准确率与RKS/RKS+相当
-- 检查机制有效
-
-### 参数影响
-
-虚拟值方差 $\sigma$ 对准确率的影响：
-- $\sigma$ ↓ → 扰动 ↓ → 准确率 ↑
-- 但 $\sigma$ 太小会降低隐私保护
-
-</div>
-
-</div>
+- **RKS/RKS+**：作为基准方案，搜索准确率最高
+- **ML-RKS/ML-RKS+ (1)**：只用选中簇结果，准确率略低但效率最高
+- **ML-RKS/ML-RKS+ (5)**：检查所有簇并返回全局Top-k
+- **检查机制**：多簇检查可恢复与基准接近的准确率
+- **虚拟值方差 $\sigma$**：$\sigma$ 越小扰动越弱、准确率越高但隐私减弱
 
 <!--
 搜索准确率实验结果。横轴是Top-k的k值，纵轴是准确率Pk。
-
+	
 图中有三组曲线。RKS/RKS+是基准方案，准确率最高。ML-RKS/ML-RKS+ (1)只从选中簇返回Top-k，准确率略低于基准，因为可能遗漏其他簇的高分结果，但效率最高。ML-RKS/ML-RKS+ (5)从所有簇检查并返回全局Top-k，准确率与RKS/RKS+相当，说明检查机制有效。
-
+	
 虚拟值方差σ影响准确率。σ越小，虚拟值扰动越小，准确率越高。但σ太小会降低隐私保护。
 -->
 
 ---
-layout: default
+layout: two-cols-header
 ---
 
-<!--TODO 这里要重新布局，因为文字展示不全-->
 ## 实验结果：排名隐私
 
-<div class="grid grid-cols-2 gap-8 items-start">
+::left::
 
-<div>
+<img src="https://cdn-mineru.openxlab.org.cn/result/2025-10-21/99ec5320-3a91-4791-a67b-f4c5f4535912/527688e7177b24b6a0e8bf25cda442a923493cd82b7796294e5756381690a238.jpg" alt="排名隐私" class="w-11/12 mx-auto">
+<div class="text-center text-xs text-gray-500 mt-1">图：排名隐私对比</div>
 
-<img src="https://cdn-mineru.openxlab.org.cn/result/2025-10-21/99ec5320-3a91-4791-a67b-f4c5f4535912/527688e7177b24b6a0e8bf25cda442a923493cd82b7796294e5756381690a238.jpg" alt="排名隐私" class="w-full">
+::right::
 
-</div>
-
-<div>
-
-### 隐私对比
-
-**ML-RKS/ML-RKS+ (1)：**
-- 排名扰动最大
-- 隐私保护最强
-- 只返回选中簇结果
-
-**ML-RKS/ML-RKS+ (5)：**
-- 排名扰动与RKS/RKS+相近
-- 返回全局Top-k
-
-### 参数权衡
-
-虚拟值方差 $\sigma$ 的作用：
-- $\sigma$ ↑ → 扰动 ↑ → 隐私 ↑
-- 但 $\sigma$ 太大会降低准确率
-
-**结论：** $\sigma$ 是准确率与隐私的平衡参数，用户可根据需求灵活调节
-
-</div>
-
-</div>
+- **ML-RKS/ML-RKS+ (1)**：排名扰动最大，隐私保护最强
+- **ML-RKS/ML-RKS+ (5)**：排名扰动与RKS/RKS+接近，返回全局Top-k
+- **虚拟值方差 $\sigma$ 增大**：扰动增大，排名随机性更强、隐私更好
+- **$\sigma$ 过大**：会降低搜索准确率
+- **参数作用**：$\sigma$ 在准确率与隐私之间提供权衡
 
 <!--
 排名隐私实验结果。横轴是k值，纵轴是排名扰动P̃k。扰动越大，说明返回结果排名与真实排名差异越大，隐私保护越好。
-
+	
 ML-RKS/ML-RKS+ (1)的排名扰动最大，隐私保护最强，因为只从选中簇返回结果，排名随机性较大。ML-RKS/ML-RKS+ (5)的排名扰动与RKS/RKS+相近，因为都返回全局Top-k。
-
+	
 虚拟值方差σ也影响排名隐私。σ越大，虚拟值扰动越大，排名随机性越强，隐私保护越好。但σ太大会降低搜索准确率。
-
+	
 σ是准确率与隐私的平衡参数。用户可以根据实际需求灵活调节：准确率优先选小σ，隐私优先选大σ。
 -->
 
