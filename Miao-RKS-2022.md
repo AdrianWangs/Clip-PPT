@@ -715,7 +715,6 @@ $$\mathcal{S}(\widehat{\mathbf{c}}_y \cdot \widehat{\mathbf{P}}_{ver}, \widehat{
 layout: default
 ---
 
-<!--TODO 这一块文字部分不要花里胡哨的，直接markdown，防止无法渲染公式，在右半页自上而下排版就行-->
 ## 动态更新操作示例
 
 <div class="grid grid-cols-5 gap-0 h-full place-items-center">
@@ -724,31 +723,27 @@ layout: default
   <img src="https://cdn-mineru.openxlab.org.cn/result/2025-10-21/99ec5320-3a91-4791-a67b-f4c5f4535912/a36c1fb24cd44737174aa7a79c2efd5fc45555bcfe70cbe97a400bb2d4abee53.jpg" alt="文件更新示例" class="w-10/12">
 </div>
 
-<div class="col-span-2 mt-6 grid grid-cols-3 gap-6">
+<div class="col-span-2">
 
-<div class="text-center p-4 bg-blue-50 rounded">
-  <p class="font-semibold text-blue-700">文件修改</p>
-  <p class="text-sm mt-2">$\mathbf{d}_1 \to \mathbf{d}_1'$</p>
-  <p class="text-xs mt-2 text-gray-600">更新路径节点</p>
-  <p class="text-xs text-gray-600">版本号 $ver' = 1$</p>
-  <p class="text-xs mt-2 font-semibold">复杂度: $O(\log L_y)$</p>
-</div>
+### 三种更新操作
 
-<div class="text-center p-4 bg-green-50 rounded">
-  <p class="font-semibold text-green-700">文件删除</p>
-  <p class="text-sm mt-2">删除 $\mathbf{d}_2$</p>
-  <p class="text-xs mt-2 text-gray-600">设置为零向量</p>
-  <p class="text-xs text-gray-600">版本号 $ver' = 2$</p>
-  <p class="text-xs mt-2 font-semibold">复杂度: $O(\log L_y)$</p>
-</div>
+**1. 文件修改**
+- 操作：$\mathbf{d}_1 \to \mathbf{d}_1'$
+- 更新路径节点
+- 版本号：$ver' = 1$
+- 复杂度：$O(\log L_y)$
 
-<div class="text-center p-4 bg-red-50 rounded">
-  <p class="font-semibold text-red-700">文件添加</p>
-  <p class="text-sm mt-2">添加 $\mathbf{d}_5$</p>
-  <p class="text-xs mt-2 text-gray-600">创建新节点</p>
-  <p class="text-xs text-gray-600">版本号 $ver' = 3$</p>
-  <p class="text-xs mt-2 font-semibold">复杂度: $O(\log L_y)$</p>
-</div>
+**2. 文件删除**
+- 操作：删除 $\mathbf{d}_2$
+- 设置为零向量
+- 版本号：$ver' = 2$
+- 复杂度：$O(\log L_y)$
+
+**3. 文件添加**
+- 操作：添加 $\mathbf{d}_5$
+- 创建新节点
+- 版本号：$ver' = 3$
+- 复杂度：$O(\log L_y)$
 
 </div>
 </div>
