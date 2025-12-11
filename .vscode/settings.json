@@ -11,5 +11,6 @@
     "VCSE-HST.md",
     "Miao-RKS-2022.md",
     "VCSE-HST.md"
-  ]
+  ],
+  "slidev.port": 3030
 }

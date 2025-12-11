@@ -1,0 +1,132 @@
+\relax 
+\providecommand{\transparent@use}[1]{}
+\citation{radford2021learning}
+\citation{yang2025secure,zhang2024efficient}
+\citation{miao2022ranked,yang2022mu}
+\citation{yang2025secure}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{}\protected@file@percent }
+\citation{yang2025secure}
+\citation{song2000practical}
+\citation{cao2014privacy,wang2016secure}
+\citation{miao2022ranked}
+\citation{li2022vrfms}
+\citation{miao2018lightweight}
+\citation{miao2017practical}
+\citation{li2017achieving}
+\citation{wang2019secure}
+\citation{radford2021learning}
+\citation{xia2015towards,ferreira2019practical}
+\citation{xia2019boew}
+\citation{guo2021fast}
+\citation{wang2023privacy}
+\citation{zhang2024efficient}
+\citation{yang2022mu}
+\citation{wang2019search}
+\citation{yang2025secure}
+\@writefile{toc}{\contentsline {section}{\numberline {II}Related Work}{2}{}\protected@file@percent }
+\newlabel{sec:related}{{II}{2}{}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-A}}Searchable Encryption}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}Cross-Modal Retrieval}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}Privacy-Preserving Cross-Modal Retrieval}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {III}Problem Formulation}{2}{}\protected@file@percent }
+\newlabel{sec:formulation}{{III}{2}{}{section.3}{}}
+\citation{miao2022ranked,yang2025secure}
+\citation{stefanov2018path}
+\citation{gilboa2014distributed}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces System model of VCSE-HST. DO builds encrypted hierarchical spherical tree indexes and uploads to CS. DUs obtain keys from DO and submit encrypted queries to CS, which returns top-$k$ encrypted results. DUs verify the correctness of results.}}{3}{}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:system}{{1}{3}{}{figure.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}System Model}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Problem Definition}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}Threat Model}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Preliminaries}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Bilinear Verification for Encrypted Inner Products}{3}{}\protected@file@percent }
+\citation{merkle1987digital}
+\citation{wong2009secure}
+\citation{liu2016efficient}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Merkle Trees}{4}{}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Spherical $k$-Means}}{4}{}\protected@file@percent }
+\newlabel{alg:spherical_kmeans}{{1}{4}{}{algorithm.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {V}Proposed Scheme}{4}{}\protected@file@percent }
+\newlabel{sec:scheme}{{V}{4}{}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Key Generation}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Hierarchical Spherical Tree Construction}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}1}Spherical $k$-Means Clustering}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {V-B}2}Recursive Tree Construction}{4}{}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces Build Hierarchical Spherical Tree}}{5}{}\protected@file@percent }
+\newlabel{alg:build_tree}{{2}{5}{}{algorithm.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Schematic hierarchical spherical tree on the unit sphere (illustrative example with $k{=}6$ branches shown for clarity). Blue markers indicate cluster centers (L1) and orange triangles show their child nodes (L2), connected via great-circle arcs. This spherical organization underlies our shallow $k$-ary index; in our experiments with $k{=}10$ on CIFAR-100, the tree depth is 3--4 layers.}}{5}{}\protected@file@percent }
+\newlabel{fig:tree_structure}{{2}{5}{}{figure.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Variance-Guided Dimension Reduction}{5}{}\protected@file@percent }
+\newlabel{subsec:variance_dr}{{\mbox  {V-C}}{5}{}{subsection.5.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-D}}Index Encryption}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-E}}Query Token Generation}{5}{}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {3}{\ignorespaces Beam Search on Encrypted Hierarchical Tree}}{6}{}\protected@file@percent }
+\newlabel{alg:beam_search}{{3}{6}{}{algorithm.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-F}}Beam Search Algorithm}{6}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Merkle verification in a $k{=}3$ hierarchical tree with depth 2 (3 layers: root, internal nodes A/B/C, leaves L1--L9). To verify that leaf $L1$ is included in the committed tree, the server provides a verification path (blue nodes: $L1\rightarrow A\rightarrow \textsf  {Root}$) and sibling hashes (orange dashed boxes: $\{L2, L3, B, C\}$). The client recomputes parent hashes bottom-up from $L1$ using the sibling values and checks that the recomputed root hash matches the published commitment $H(\textsf  {Root})$. Hash formulas shown use simplified notation; full syntax with node IDs, metadata, and type tags is defined in Preliminaries.}}{6}{}\protected@file@percent }
+\newlabel{fig:merkle_beam_verification}{{3}{6}{}{figure.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-G}}Merkle-Tree-Based Integrity Verification}{6}{}\protected@file@percent }
+\newlabel{subsec:merkle}{{\mbox  {V-G}}{6}{}{subsection.5.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {VI}Security Analysis}{7}{}\protected@file@percent }
+\newlabel{sec:security}{{VI}{7}{}{section.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-A}}Security Model and Definitions}{7}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-B}}Confidentiality: Simulation-Based Argument}{7}{}\protected@file@percent }
+\newlabel{subsec:confidentiality}{{\mbox  {VI-B}}{7}{}{subsection.6.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-C}}Score Correctness Verification}{7}{}\protected@file@percent }
+\citation{zhang2012separable}
+\citation{shamir1979share}
+\citation{yang2025secure}
+\citation{krizhevsky2009learning}
+\citation{radford2021learning}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-D}}Index and Query Confidentiality}{8}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-E}}Token Indistinguishability}{8}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-F}}Score Correctness and Execution Integrity}{8}{}\protected@file@percent }
+\newlabel{thm:soundness}{{\mbox  {VI-F}}{8}{}{subsection.6.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VI-G}}Privacy Leakage Discussion}{8}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VII}Performance Evaluation}{8}{}\protected@file@percent }
+\newlabel{sec:evaluation}{{VII}{8}{}{section.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-A}}Experimental Setup}{8}{}\protected@file@percent }
+\citation{yang2025secure}
+\citation{yang2022mu}
+\citation{zhang2024efficient}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-B}}Overall Performance Comparison}{9}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Accuracy comparison (Recall@1, Recall@5, Recall@10) for different schemes. VCSE-HST with beam size 10 matches Cross-Model-SE's accuracy while being much faster. Even beam size 3 achieves competitive Recall@5 and Recall@10.}}{9}{}\protected@file@percent }
+\newlabel{fig:accuracy_comparison}{{4}{9}{}{figure.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-C}}Search Time Analysis}{9}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-D}}Beam Size Trade-off Analysis}{9}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Performance comparison on CIFAR-100 (50{,}000 images, 100 queries)}}{10}{}\protected@file@percent }
+\newlabel{tab:comparison_cifar_full}{{I}{10}{}{table.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {II}{\ignorespaces Performance on Caltech256 (full: 30{,}607 images, 257 queries)}}{10}{}\protected@file@percent }
+\newlabel{tab:comparison_caltech_full}{{II}{10}{}{table.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Search time comparison on logarithmic scale. VCSE-HST attains 7.5--19.7$\times $ speedup over Cross-Model-SE under our settings. Beam size 10 achieves single-digit millisecond latency.}}{10}{}\protected@file@percent }
+\newlabel{fig:search_time}{{5}{10}{}{figure.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Top-1 agreement rate increases with beam size under no-compression setting.}}{10}{}\protected@file@percent }
+\newlabel{fig:beam_acc}{{6}{10}{}{figure.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-E}}Accuracy--Speed Trade-off}{10}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-F}}Noise Robustness (No-Compression Baseline)}{10}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Search time increases sub-linearly with beam size (log-scale) under no-compression setting.}}{11}{}\protected@file@percent }
+\newlabel{fig:beam_time}{{7}{11}{}{figure.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Agreement-speed trade-off across schemes. Larger beam sizes improve agreement while maintaining millisecond-level latency.}}{11}{}\protected@file@percent }
+\newlabel{fig:acc_time_combo}{{8}{11}{}{figure.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Non-monotonic relationship between compression ratio and Recall@1 on CIFAR-100. Modest compression (2.5--5\%) improves recall by eliminating low-discriminative dimensions, peaking at 93\% R@1 with 5\% compression. Beyond 10\%, recall degrades as informative dimensions are pruned.}}{11}{}\protected@file@percent }
+\newlabel{fig:compression_accuracy}{{9}{11}{}{figure.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-G}}Compression Ratio Study and Analysis}{11}{}\protected@file@percent }
+\newlabel{sec:compression_study}{{\mbox  {VII-G}}{11}{}{subsection.7.7}{}}
+\newlabel{sec:compression_theory}{{\mbox  {VII-G}}{11}{}{figure.9}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {III}{\ignorespaces Index Construction Metrics on CIFAR-100 (50{,}000 images)}}{12}{}\protected@file@percent }
+\newlabel{tab:index_construction}{{III}{12}{}{table.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-H}}Index Construction Time}{12}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-I}}Integrity Verification Overhead}{12}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VIII}Conclusion}{12}{}\protected@file@percent }
+\newlabel{sec:conclusion}{{VIII}{12}{}{section.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Verification time vs beam size for Merkle-based integrity checks. Overhead grows near-linearly with $\beta $ and stays within a few milliseconds per query.}}{12}{}\protected@file@percent }
+\newlabel{fig:merkle_time_vs_beam}{{10}{12}{}{figure.10}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Per-query latency breakdown (search + verification). Verification constitutes a small fraction of total time and does not change accuracy metrics.}}{12}{}\protected@file@percent }
+\newlabel{fig:merkle_breakdown}{{11}{12}{}{figure.11}{}}
+\bibstyle{IEEEtran}
+\bibdata{references}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Index construction time: Cross-Model-SE vs VCSE-HST + Merkle (ms). Merkle hashing adds modest overhead at build time.}}{13}{}\protected@file@percent }
+\newlabel{fig:merkle_index_time}{{12}{13}{}{figure.12}{}}
+\gdef\svg@ink@ver@settings{{\m@ne }{inkscape}{\m@ne }}
+\gdef \@abspage@last{13}
