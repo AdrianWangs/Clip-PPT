@@ -10,7 +10,8 @@
     "slidev-claude-gpt-high.md",
     "VCSE-HST.md",
     "Miao-RKS-2022.md",
-    "VCSE-HST.md"
+    "VCSE-HST.md",
+    "RemoteRAG.md"
   ],
   "slidev.port": 3030
 }
