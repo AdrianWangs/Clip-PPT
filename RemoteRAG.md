@@ -169,7 +169,7 @@ layout: default
 
 <div>
 
-<img src="https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/7b3742de9032533bdf003a33af174ac76f27f31794f1985999e4699f25313a87.jpg" alt="系统架构模型" class="w-10/12 mx-auto">
+<img src="/image/RemoteRAG/7b3742de9032533bdf003a33af174ac76f27f31794f1985999e4699f25313a87.jpg" alt="系统架构模型" class="w-10/12 mx-auto">
 
 <div class="text-center text-xs text-gray-500 mt-1">图1：RemoteRAG流程图</div>
 
@@ -271,7 +271,7 @@ $$ D_{n,\epsilon}(x | x_0) \propto e^{-\epsilon \|x - x_0\|} $$
 
 <div class="flex flex-col justify-center items-center h-full pl-4">
 
-<img src="https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/8fd237ff91d62f68800c3f662d4a01ec970e6c2ccf4890b49a5a5673aa7f638b.jpg" alt="Gamma分布PDF" class="w-10/12 shadow-lg rounded-lg border border-gray-100">
+<img src="/image/RemoteRAG/8fd237ff91d62f68800c3f662d4a01ec970e6c2ccf4890b49a5a5673aa7f638b.jpg" alt="Gamma分布PDF" class="w-10/12 shadow-lg rounded-lg border border-gray-100">
 
 <div class="text-center text-xs text-gray-500 mt-3">图2：不同Gamma分布的概率密度函数</div>
 
@@ -329,9 +329,9 @@ layout: two-cols-header
 
 <div class="flex flex-col justify-center items-center h-full">
 
-<img src="https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/dc5b386358244399c87829cd96fd7ec99207108fe6cdc07ccf4f711711580e5a.jpg" alt="斜投影示意" class="w-7/12 mb-4">
+<img src="/image/RemoteRAG/dc5b386358244399c87829cd96fd7ec99207108fe6cdc07ccf4f711711580e5a.jpg" alt="斜投影示意" class="w-7/12 mb-4">
 
-<img src="https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/ec27a8d63be19970558bdff01ca16b3ce7e9bd7256eb301a20080fdaf478f33c.jpg" alt="正投影示意" class="w-7/12">
+<img src="/image/RemoteRAG/ec27a8d63be19970558bdff01ca16b3ce7e9bd7256eb301a20080fdaf478f33c.jpg" alt="正投影示意" class="w-7/12">
 
 <div class="text-center text-xs text-gray-500 mt-2">图3：3维投影示意</div>
 
@@ -668,8 +668,8 @@ layout: two-cols-header
 
 ::right::
 
-<img src="https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/a2d2a267d5cbed6508d4b5cf1d2ad153e67003072872420e0c2bdde1beb9d907.jpg" alt="SacreBLEU-r" class="w-7/12 mx-auto mb-4">
-<img src="https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/19e2dcf1d872041679fd356c88cee2f3f16f5714dc028d9a229623af44b607ef.jpg" alt="SacreBLEU-ε" class="w-7/12 mx-auto">
+<img src="/image/RemoteRAG/a2d2a267d5cbed6508d4b5cf1d2ad153e67003072872420e0c2bdde1beb9d907.jpg" alt="SacreBLEU-r" class="w-7/12 mx-auto mb-4">
+<img src="/image/RemoteRAG/19e2dcf1d872041679fd356c88cee2f3f16f5714dc028d9a229623af44b607ef.jpg" alt="SacreBLEU-ε" class="w-7/12 mx-auto">
 <div class="text-center text-xs text-gray-500 mt-1">图4：扰动r和隐私预算ε对应的SacreBLEU指标</div>
 
 <!--
@@ -748,7 +748,7 @@ layout: two-cols
 ::right::
 
 <div class="flex items-center justify-center h-full">
-<img src="https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/532a08a235f189fcabfb4039dfb8d47885a603e3bfa92e8c3e39039cb092956d.jpg" alt="开销分解" class="w-full">
+<img src="/image/RemoteRAG/532a08a235f189fcabfb4039dfb8d47885a603e3bfa92e8c3e39039cb092956d.jpg" alt="开销分解" class="w-full">
 </div>
 
 <!--
@@ -774,12 +774,12 @@ layout: default
 <div class="grid grid-cols-2 gap-8 px-10">
 
 <div class="text-center">
-<img src="https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/8c3f5de2ca88a072c79260c66ddd91d33f6bc385e4efaf576c1f5c93cfead114.jpg" alt="计算成本" class="w-full mx-auto">
+<img src="/image/RemoteRAG/8c3f5de2ca88a072c79260c66ddd91d33f6bc385e4efaf576c1f5c93cfead114.jpg" alt="计算成本" class="w-full mx-auto">
 <div class="text-sm text-gray-600 mt-3 font-bold">计算成本对比</div>
 </div>
 
 <div class="text-center">
-<img src="https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/f987c387ab48168f1d2c45fa24d53a5462a3b38df722057c01e07969561e8e24.jpg" alt="通信成本" class="w-full mx-auto">
+<img src="/image/RemoteRAG/f987c387ab48168f1d2c45fa24d53a5462a3b38df722057c01e07969561e8e24.jpg" alt="通信成本" class="w-full mx-auto">
 <div class="text-sm text-gray-600 mt-3 font-bold">通信成本对比</div>
 </div>
 

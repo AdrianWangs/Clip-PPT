@@ -62,7 +62,7 @@ $\triangleright$ Protection of the indices of top $k$ documents. The embeddings 
 
 In RemoteRAG, we examine the potential privacy leakage occurring during the data transmission between the cloud and the user. Considerations of offline RAG services downloaded directly from the cloud or internal privacy issues (Zeng et al., 2024) specific to RAG are beyond the scope of this paper. 
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/7b3742de9032533bdf003a33af174ac76f27f31794f1985999e4699f25313a87.jpg)
+![image](/image/RemoteRAG/7b3742de9032533bdf003a33af174ac76f27f31794f1985999e4699f25313a87.jpg)
 
 
 
@@ -107,7 +107,7 @@ Practical generation guideline. Directly generating a point according to the abo
 
 From $r$ to $\epsilon$ : $\epsilon \approx \frac{n}{r}$ . Apart from drawing $r$ from the gamma distribution formed by $\epsilon$ , we can also estimate the value of the privacy budget $\epsilon$ from a 
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/8fd237ff91d62f68800c3f662d4a01ec970e6c2ccf4890b49a5a5673aa7f638b.jpg)
+![image](/image/RemoteRAG/8fd237ff91d62f68800c3f662d4a01ec970e6c2ccf4890b49a5a5673aa7f638b.jpg)
 
 
 
@@ -130,14 +130,14 @@ where $\Omega_{n}(\pi) = \frac{2\pi^{\frac{n}{2}}}{\Gamma(\frac{n}{2})}$ represe
 
 From Lemma 1, we can derive the polar angle $\alpha_{k}$ from $k$ . Since the perturbation is small ( $r \ll 1$ ), the perturbed angle $\Delta \alpha_{k}$ between $e_{k}$ and $e_{k^{\prime}}$ can be approximated as $r$ . To ensure that top $k^{\prime}$ documents 
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/dc5b386358244399c87829cd96fd7ec99207108fe6cdc07ccf4f711711580e5a.jpg)
+![image](/image/RemoteRAG/dc5b386358244399c87829cd96fd7ec99207108fe6cdc07ccf4f711711580e5a.jpg)
 
 
 
 (a) Oblique projection. Top $k^{\prime}$ documents related to $e_{k^{\prime}}$ include top $k$ documents related to $e_k$ .
 
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/ec27a8d63be19970558bdff01ca16b3ce7e9bd7256eb301a20080fdaf478f33c.jpg)
+![image](/image/RemoteRAG/ec27a8d63be19970558bdff01ca16b3ce7e9bd7256eb301a20080fdaf478f33c.jpg)
 
 
 
@@ -294,14 +294,14 @@ For efficiency, RemoteRAG introduces little extra computation and communication 
 
 **Embedding Model Details.** We use three open-sourced embedding models: all-MiniLM-L12-v2 (MiniLM) (Sentence Transformers, 2021), allmpnet-base-v2 (MPNet), gtr-t5-base (T5) (Sentence Transformers, 2022); and two OpenAI proprietary embedding models: text-embedding-ada-002 (OpenAI-1) (OpenAI, 2022b), text-embedding-3-large (OpenAI-2) (OpenAI, 2024). The details of these embedding models are shown in Table 4. 
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/a2d2a267d5cbed6508d4b5cf1d2ad153e67003072872420e0c2bdde1beb9d907.jpg)
+![image](/image/RemoteRAG/a2d2a267d5cbed6508d4b5cf1d2ad153e67003072872420e0c2bdde1beb9d907.jpg)
 
 
 
 (a) SacreBLEU- $r$
 
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/19e2dcf1d872041679fd356c88cee2f3f16f5714dc028d9a229623af44b607ef.jpg)
+![image](/image/RemoteRAG/19e2dcf1d872041679fd356c88cee2f3f16f5714dc028d9a229623af44b607ef.jpg)
 
 
 
@@ -330,21 +330,21 @@ Table 6: RemoteRAG achieves no loss in retrieval under various settings in our e
 
 <table><tr><td></td><td>N</td><td>k</td><td>r</td><td>Embedding Model</td></tr><tr><td></td><td>104/105/106</td><td>5/10/15/20</td><td>0.03/0.05/0.07/0.1</td><td>MiniLM/MPNet/T5/OpenAI-1/OpenAI-2</td></tr><tr><td>Recall</td><td>100%</td><td>100%</td><td>100%</td><td>100%</td></tr></table>
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/8c3f5de2ca88a072c79260c66ddd91d33f6bc385e4efaf576c1f5c93cfead114.jpg)
+![image](/image/RemoteRAG/8c3f5de2ca88a072c79260c66ddd91d33f6bc385e4efaf576c1f5c93cfead114.jpg)
 
 
 
 (a) Computation cost.
 
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/f987c387ab48168f1d2c45fa24d53a5462a3b38df722057c01e07969561e8e24.jpg)
+![image](/image/RemoteRAG/f987c387ab48168f1d2c45fa24d53a5462a3b38df722057c01e07969561e8e24.jpg)
 
 
 
 (b) Communication cost.
 
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/532a08a235f189fcabfb4039dfb8d47885a603e3bfa92e8c3e39039cb092956d.jpg)
+![image](/image/RemoteRAG/532a08a235f189fcabfb4039dfb8d47885a603e3bfa92e8c3e39039cb092956d.jpg)
 
 
 
@@ -788,14 +788,14 @@ To intuitively understand how the perturbation affects the recovery of the seman
 
 Without any perturbation, the recovered query contains both the name "Alice" and the disease 
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/2cf5074fdcb658614605f37c9f601987a487bae11f004aeec2b640c7599f4126.jpg)
+![image](/image/RemoteRAG/2cf5074fdcb658614605f37c9f601987a487bae11f004aeec2b640c7599f4126.jpg)
 
 
 
 (a) ExactMatch- $r$
 
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/577db2e3f90af148517474d34448407648be1d6dadf23af10964d12d525c578b.jpg)
+![image](/image/RemoteRAG/577db2e3f90af148517474d34448407648be1d6dadf23af10964d12d525c578b.jpg)
 
 
 
@@ -848,14 +848,14 @@ However, even though the computation cost in module 1 increases, the total respo
 
 We use several simulation experiments to explore some details in RemoteRAG. 
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/c1514c415636ffb07078856274627905b02ae37709cfc11566da13db36ff2c21.jpg)
+![image](/image/RemoteRAG/c1514c415636ffb07078856274627905b02ae37709cfc11566da13db36ff2c21.jpg)
 
 
 
 (a) $k / N - \alpha_{k}$
 
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/89abb87b546f865af0f9267ee75090cd135685d20a7aa04cd4b0eef104f2ca9c.jpg)
+![image](/image/RemoteRAG/89abb87b546f865af0f9267ee75090cd135685d20a7aa04cd4b0eef104f2ca9c.jpg)
 
 
 
@@ -872,14 +872,14 @@ $k / N - \alpha_{k}$ . We first plot the equation of Lemma 1. From Figure 7(a), 
 
 $\epsilon - k'$ . We discuss in Section 3.2 that in practice, apart from initially setting the privacy budget, we can also choose $k'$ first and then compute the corresponding privacy budget. From Figure 7(b), we observe that when $k' < 50$ , the change in $\epsilon$ is relatively large, which corresponds to a small perturbation and high attack performance according to Figure 4. The user should avoid considering $k'$ as well as the corresponding privacy budget in this range, since the protection is too weak, as shown in Figure 4. To avoid excessive computation and communication costs, an appropriate choice of $k'$ 
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/5ba1c5bc0daaf381d0a10687e4ad2d500412f70b62dc716359a38de5769729ed.jpg)
+![image](/image/RemoteRAG/5ba1c5bc0daaf381d0a10687e4ad2d500412f70b62dc716359a38de5769729ed.jpg)
 
 
 
 (a) Visualization of top $k$
 
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/543d3f638365e63aa0a9e0260bac580d9f9e681b6608a2f37c325960e82f3b65.jpg)
+![image](/image/RemoteRAG/543d3f638365e63aa0a9e0260bac580d9f9e681b6608a2f37c325960e82f3b65.jpg)
 
 
 
@@ -910,7 +910,7 @@ $$
 
 where $\Omega_{n}(\pi) = \frac{2\pi^{\frac{n}{2}}}{\Gamma(\frac{n}{2})}$ represents the surface area of the unit $n$ -sphere. 
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/21b2fde9d82210c228fa5c2968178b7f00aa89695fdd8b8fd38fe56dfaf765c1.jpg)
+![image](/image/RemoteRAG/21b2fde9d82210c228fa5c2968178b7f00aa89695fdd8b8fd38fe56dfaf765c1.jpg)
 
 
 
@@ -967,7 +967,7 @@ $$
 \Delta k = k ^ {\prime} - k = N \cdot \frac {\Omega_ {n - 1} (\pi)}{\Omega_ {n} (\pi)} \cdot \int_ {\alpha_ {k}} ^ {\alpha_ {k ^ {\prime}}} \sin^ {n - 2} \theta d \theta
 $$
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/17369bfa2f7f82f23aef15f2ea67716e91f978b827fa1c6106c3f8ad1ece6ded.jpg)
+![image](/image/RemoteRAG/17369bfa2f7f82f23aef15f2ea67716e91f978b827fa1c6106c3f8ad1ece6ded.jpg)
 
 
 Theorem 5 (Repeated from Theorem 2). Given two normalized embeddings $e_{a}$ and $e_{b}$ of the same dimension, L2 distance and cosine distance have the following relationship: 
@@ -982,7 +982,7 @@ $$
 \begin{array}{l} d _ {l 2} ^ {2} \left(e _ {a}, e _ {b}\right) = \left\| e _ {a} - e _ {b} \right\| ^ {2} = \sum_ {i = 1} ^ {n} \left(e _ {a i} - e _ {b i}\right) ^ {2} \\ = \sum_ {i = 1} ^ {n} e _ {a i} ^ {2} + \sum_ {i = 1} ^ {n} e _ {b i} ^ {2} - \sum_ {i = 1} ^ {n} 2 e _ {a i} e _ {b i} \\ = \| e _ {a} \| ^ {2} + \| e _ {b} \| ^ {2} - 2 \sum_ {i = 1} ^ {n} e _ {a i} e _ {b i} \\ = 1 + 1 - 2 \left\langle e _ {a}, e _ {b} \right\rangle \\ = 2 d _ {\cos} \left(e _ {a}, e _ {b}\right) \\ \end{array}
 $$
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/616aa74745e63d7e9a09f815ebe74be827251896d19169b4ef06c5129e031145.jpg)
+![image](/image/RemoteRAG/616aa74745e63d7e9a09f815ebe74be827251896d19169b4ef06c5129e031145.jpg)
 
 
 Lemma 3. $k$ points $p_1, \dots, p_k$ are extracted from the uniform distribution on the surface of an $n$ -dimensional sphere with radius $r$ . Denote the mean of these points as $\overline{p}$ . L2 distance $d$ between $\overline{p}$ and the center of the sphere has the expected value 
@@ -1027,7 +1027,7 @@ $$
 
 where $\alpha_{k}$ is calculated from Lemma 2. 
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/fec8463472769de01a9f907cbb9696b57f88c328ba13a0a8988c19049aad1366.jpg)
+![image](/image/RemoteRAG/879b60049eacc672973512175e1dd15d3b205e64f2466182a6ddcc5ff02c15af.jpg)
 
 
 
@@ -1042,4 +1042,4 @@ $$
 \tan \omega = \frac {\mathbb {E} [ A B ]}{O A} = \frac {\sin \alpha_ {k}}{\cos \alpha_ {k} \sqrt {k}} = \frac {\tan \alpha_ {k}}{\sqrt {k}}
 $$
 
-![image](https://cdn-mineru.openxlab.org.cn/result/2026-02-26/852dd719-21ca-431b-b470-b0cf004e7bc2/f1e7bbef9d48f602416bdfc9075d71b19f2157d3541910bbf937d90320582b48.jpg)
+![image](/image/RemoteRAG/f1e7bbef9d48f602416bdfc9075d71b19f2157d3541910bbf937d90320582b48.jpg)
