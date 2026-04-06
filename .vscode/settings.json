@@ -11,7 +11,8 @@
     "VCSE-HST.md",
     "Miao-RKS-2022.md",
     "VCSE-HST.md",
-    "RemoteRAG.md"
+    "RemoteRAG.md",
+    "Preempt.md"
   ],
   "slidev.port": 3030
 }
