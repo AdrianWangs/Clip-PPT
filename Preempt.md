@@ -3,9 +3,9 @@ theme: seriph
 background: /image/slides/image.png
 title: "Prϵϵmpt: Sanitizing Sensitive Prompts for LLMs"
 info: |
-  ## 面向LLM的敏感提示词净化方案
-  在保护prompt中敏感信息的同时维持LLM响应质量
-class: text-center
+  ## 面向 LLM 的敏感提示词净化方案
+  把 prompt 中可独立识别的敏感 token 先在本地净化，再交给云端 LLM。
+class: pre
 drawings:
   persist: false
 transition: slide-left
@@ -16,991 +16,974 @@ katex: true
 hideInToc: true
 ---
 
-# Prϵϵmpt
-## Sanitizing Sensitive Prompts for LLMs
+<div class="pre-cover">
+  <div class="pre-kicker">论文分享 · 隐私保护 LLM</div>
 
-<div class="mt-6 text-sm">
+  <div class="pre-title">Prϵϵmpt</div>
+  <div class="pre-subtitle">Sanitizing Sensitive Prompts for LLMs</div>
 
-**作者：** Amrita Roy Chowdhury, David Glukhov, Divyam Anshumaan, Prasad Chalasani, Nicolas Papernot, Somesh Jha, Mihir Bellare
+  <div class="pre-lead mt-7">
+    一篇关于 <b>LLM 推理阶段 prompt 隐私保护</b> 的论文：在 prompt 进入云端模型之前，先处理其中可识别的敏感 token。
+  </div>
 
-**单位：** University of Michigan · University of Toronto · UW-Madison · UC San Diego
+  <div class="pre-meta mt-7">
+    <span>NDSS 2026 · CCF A</span>
+    <span>University of Michigan · University of Toronto · UW-Madison · UC San Diego</span>
+  </div>
 
-**来源：** arXiv 2504.05147, 2025
-
-</div>
-
-<div class="absolute bottom-8 right-8">
-  <p class="text-sm">主讲人：王宇哲</p>
-</div>
-
-<!--
-大家好，今天讲一篇和我自己研究直接相关的论文——Prϵϵmpt。先说一下为什么选它。
-
-大家知道我做的是RAG场景下的隐私保护。现在我们的工作主要集中在"检索"环节——用可搜索加密让云端在密文上完成检索。但RAG不只有检索，检索完还要把文档片段和用户查询一起喂给LLM做生成。这一步怎么保护？我一直在想这个问题。
-
-如果只保护检索不保护生成，那等于前门锁好了后门敞开——文档内容和查询最终还是明文交给了LLM。我觉得一个完整的隐私保护RAG系统，检索和生成两个环节都得管。
-
-Prϵϵmpt做的恰好就是"生成"这一环的保护——在prompt发给LLM之前净化敏感信息。它的核心思想是把敏感token分成两类，分别用不同的机制保护。我觉得这个"分类再保护"的策略很值得借鉴，有可能直接嵌入我们的RAG框架里，补上生成环节的缺口。
--->
-
----
-layout: two-cols-header
----
-
-## 研究背景 — LLM推理时的隐私风险
-
-::left::
-
-### 一个具体场景
-
-医生用GPT分析体检报告 → SSN、诊断结果直接暴露给提供商
-
-- 敏感信息类型广泛：SSN、信用卡号、医疗/财务细节
-- In-context learning（把示例直接放进prompt）进一步加剧风险
-- 对手就是模型提供商本身——不是假设性风险
-
-::right::
-
-### 各国/企业的反应
-
-- **国家层面**：意大利禁止使用ChatGPT
-- **金融机构**：多家银行禁止员工使用LLM
-- **科技公司**：Samsung、Amazon、Apple均限制内部使用
-- **政府机构**：多国政府部门发布禁令
-
-这说明隐私问题已经严重到需要系统性解决方案，而不只是"注意一下就好"
-
-<!--
-先看背景。想象一个场景：一位医生用GPT分析病人体检报告，prompt里有SSN、诊断结果、保险号。这些信息发送给模型提供商后，对方理论上全部可见。推理阶段的对手不是别人，就是模型提供商自己。
-
-而且in-context learning让这个问题更严重了。什么意思呢？就是说用户为了让LLM学会处理某类任务，会直接把真实数据当few-shot示例贴进prompt——比如你想让它提取病历信息，你可能直接把几份真实病历放进去当示例。这等于把训练阶段的隐私风险搬到了推理阶段，而且是用户主动把敏感数据交出去的。
-
-这不是学术圈自己在担心——意大利直接禁了ChatGPT，Samsung因为员工泄露源代码禁止使用，Amazon和Apple也有类似限制。当这么多机构选择"完全不用"而不是"小心用"的时候，说明现有的隐私保护方案确实不够用。
-
-## Q&A
-Q（师弟）：in-context learning具体怎么加剧隐私风险？
-A：就是用户把真实数据当few-shot示例直接放进prompt。比如你想让LLM学会提取病历信息，你直接把几份真实病历贴进去当示例——这些病历的隐私信息就全暴露了。
--->
-
----
-layout: two-cols-header
----
-
-## 现有方案的局限
-
-::left::
-
-### 密码学方案（HE / MPC）
-
-- 同态加密（直接对密文做计算）和安全多方计算（多方各持部分数据联合计算）
-- 隐私保证没话说，但计算开销过大：BERT上单次推理需要 **16分钟**
-- 对GPT-4o这种规模的模型基本不可行
-
-### 替换/混淆方案
-
-- 用本地LLM替换敏感token
-- 问题：需要维护查找表（有状态），无法形式化证明隐私
-- 扩展性差，每个用户需要独立的映射表
-
-::right::
-
-### 差分隐私（DP）方案
-
-- 核心思路：给文本加随机噪声来掩盖真实值
-- 问题：文本越长噪声越大，长prompt的输出质量崩掉；或者噪声改变了token的类型（人名变动词），格式错乱
-
-<div class="mt-2 text-center text-sm">
-
-四个目标——可证明的隐私保证、高实用性、不留任何历史记录、不改LLM本身——现有方案最多做到两三个。**但观察一下：LLM处理SSN时根本不看具体数字，处理年龄时才需要数值。不同token需要不同的保护方式。**
-
+  <div class="absolute bottom-8 right-8 text-sm" style="color:var(--pre-muted);">主讲人：王宇哲</div>
 </div>
 
 <!--
-那现有方案为什么不够？
+今天我分享的论文是 Prϵϵmpt，题目是 Sanitizing Sensitive Prompts for LLMs。这篇论文发表在 NDSS 2026。NDSS 是网络与系统安全方向的顶会，在 CCF 推荐目录里属于 A 类会议。
 
-现有的思路大概有三类。密码学方案，比如同态加密和MPC——隐私保证没话说，但代价太高。State-of-the-art的方案在BERT上单次推理要16分钟——注意是BERT，不是GPT-4o。规模差了几个数量级，这条路在实用性上直接不通。
+这篇论文解决的是一个比较实际的问题：用户把 prompt 发给云端 LLM 之前，能不能先把里面的敏感 token 处理掉，同时尽量不影响模型回答。这里的敏感 token 可以是姓名、身份号、年龄、工资，也可以是病历里的诊断信息。
 
-然后是替换和混淆方案，用本地LLM把敏感token换掉。问题是反向恢复时需要查找表，这就有状态了。而且LLM的概率性质决定了你没法对它做严格的隐私分析。
+我选这篇论文，是因为它刚好接在我之前做的 RAG 隐私方案后面。RAG 就是检索增强生成，先从资料库里找相关内容，再把这些内容交给 LLM 生成回答。我原来的方案主要保护检索阶段，也就是让云服务器在检索时看不到用户查询和相关数据。
 
-还有一类是差分隐私方案，思路是给文本加随机噪声。但问题是：如果你把整段prompt当成一个向量去加噪，文本越长、维度越高，需要的噪声就越大，长一点的prompt基本就被噪声淹没了，输出质量没法看。另一种思路是在embedding空间加噪再解码回文本，但解码出来的token可能完全变了类型——比如一个人名变成了动词，格式都对不上了，下游任务直接崩。
+但 RAG 还有后半段。检索结束以后，客户端会把结果解密，再把明文 context 和用户问题一起交给 LLM。这里的 context 指检索出来、准备给模型参考的上下文材料。这样一来，检索阶段虽然保护住了，生成阶段的 LLM 还是会接触到隐私信息。
 
-所以核心矛盾是：你想要隐私保证能用数学证明、净化后LLM的回答质量不下降、系统不留任何历史记录、同时不需要改LLM本身——现有方案最多满足其中两三个。
+所以我关注的是这个缺口：能不能在 context 和 prompt 送进 LLM 之前，先做一次本地预处理。Prϵϵmpt 的思路正好在这里：先处理 prompt 里的敏感 token，再把处理后的 prompt 发给云端模型。
 
-那突破口在哪？大家想一下，LLM在处理"请翻译：My SSN is 055-46-6168"的时候，它关心SSN具体是多少吗？不关心，它只需要知道这是一串9位数字加连字符的格式，然后原样保留。但如果prompt是"我46岁，推荐退休计划"，LLM就真的需要知道46这个数值。
+这一页只说动机，不提前讲机制。它怎么识别 token、怎么处理不同类型的字段、效果能到什么程度，后面一页一页展开。
 
-这个观察直接把敏感token分成了两类：一类LLM只看格式不看值，一类LLM需要用到具体数值。针对不同类型用不同工具——格式类的用加密，数值类的加小噪声——这就是Prϵϵmpt的核心思路。
-
-## Q&A
-Q（导师）：你说HE在BERT上16分钟，数据出处是？端到端推理还是单步？
-A：这个数据来自论文引用的[82]（Panda et al.），是在BERT上的端到端推理时间。注意这还是BERT的规模——GPT-4o的参数量大几个数量级，完全不可行。
+Q&A 预案：
+Q：为什么选这篇？
+A：因为它正好补的是 RAG 生成前这一段。我之前更关注检索侧，但检索结果最终还是要进 LLM。Prϵϵmpt 提供了一个可以放在生成前的预处理思路，所以和我的方向是连得上的。
 -->
 
 ---
 layout: default
+class: pre
 ---
 
-## 本文主要贡献
-
-**1. 提出 Prompt Sanitizer 的形式化定义**
-
-- 借鉴密码学的思路：先严格定义"净化"是什么（四个组件：初始化、类型标注、净化、反净化），再证明它的隐私和实用性
-- "形式化" = 可以用数学公式精确量化攻击者的优势上界，而不是"看起来应该安全"
-
-**2. 实现 Prϵϵmpt 系统**
-
-- 据论文声称，是目前在形式化隐私保证、高实用性、无状态、资源高效四个维度上做得最全面的prompt净化系统
-- 对敏感token分两类处理：Category I 用FPE（格式保留加密），Category II 用mLDP（metric局部差分隐私）
-
-**3. 实验验证**
-
-- 翻译任务：BLEU（翻译质量评分，满分1）几乎不变（下降<0.02）
-- RAG任务：准确率100%
-- 长上下文Q/A：STS（语义相似度，1=完全相同）达到0.934，回答意思几乎没变
-- 金融多轮Q/A：$\epsilon=2.0$时中位误差仅2.44%——隐私保护越弱误差越小，体现隐私-实用性权衡
-
-<!--
-这篇论文做了什么呢？
-
-先说理论层面。它从密码学借了个思路，把净化过程拆成四个组件，然后隐私和实用性各自有一个严格的衡量标准。隐私怎么量化？就是让对手看净化后的结果，看它能不能猜出原始prompt是哪个。实用性更直接——净化后LLM回答的质量掉了多少。
-
-然后在系统层面，Prϵϵmpt是这个原语的具体实现。它最聪明的地方是把敏感token分了两类：一类只看格式就够了（比如SSN），用格式保留加密；另一类数值本身有意义（比如年龄），用metric差分隐私加噪。
-
-最后是实验验证，在翻译、RAG、长上下文Q/A、金融多轮Q/A四类任务上评估。结果支持了设计决策的有效性。
-
-我觉得最核心的设计决策是把敏感token分两类——这个观察看起来简单，但它直接决定了后面所有的技术选择。
--->
-
----
-layout: center
----
-
-# 系统设计
-
-先明确**对手是谁、保护什么**（威胁模型）→ 再看**用什么工具保护**（FPE + mLDP）→ 最后看**系统怎么跑**（端到端流程）
-
-<!--
-好，接下来看具体设计。三步走：先搞清楚我们在防谁、保护什么，然后看两个核心工具怎么工作，最后走一遍完整流程。
--->
-
----
-layout: two-cols-header
----
-
-## 威胁模型与设计目标
-
-::left::
-
-### 威胁模型
-
-- Prϵϵmpt运行在用户的**本地可信设备**上
-- LLM是不可信的第三方（对手 = 模型提供商）
-- 每次交互构成独立的session
-
-### 保护范围
-
-- 聚焦于**单个token可独立推导**的敏感信息
-- 例如：SSN、信用卡号、年龄、薪资、邮编
-- 不处理需要上下文语义才能推导的隐私（如心理健康描述）
-
-::right::
-
-### 四个设计目标
-
-1. **形式化保证** — 隐私保护强度可以用数学证明，而不只是"经验上看起来安全"
-2. **高实用性** — 净化后LLM的回答质量不明显下降
-3. **无状态** — 不保留任何历史映射表（映射表一旦泄露，所有历史净化全部失效；不留表也符合GDPR删除权）
-4. **资源高效** — 客户端只需本地做NER+加密，不需要修改LLM API，零额外服务器开销
-
-### 重要限制
-
-本文只保护**独立token级别**的敏感信息。上下文语义层面的隐私（如整段话暗示心理健康状况）不在保护范围内——这决定了后面所有技术的适用边界
-
-<!--
-先看威胁模型。威胁模型其实很简单——Prϵϵmpt跑在你自己电脑上，对手就是云端的LLM。用户把prompt交给Prϵϵmpt做净化，拿到净化后的版本再发给LLM，收到响应后再反净化。整个过程LLM只能看到净化后的内容。
-
-保护范围上有个重要限制：Prϵϵmpt只保护从单个token就能提取的敏感信息。比如SSN、信用卡号、年龄这些——对手看到一个token就能直接利用，不需要理解上下文。至于"这段话暗示用户有抑郁症"这种需要理解整段话才能推断的隐私，不在保护范围内。这个边界画得还算务实——毕竟一个SSN暴露出去就直接能被利用，不需要什么NLP理解。
-
-设计目标有四个，其中"无状态"值得展开说。为什么要无状态？两个原因。一个是技术上的——有状态的方案需要维护映射表，这些表本身就是隐私风险，一旦泄露，之前所有的净化都白做了。另一个是法律上的——GDPR和CCPA都规定了数据删除权，你留着映射表就是在给自己埋雷。所以无状态设计直接消除了这两个问题。
-
-## Q&A
-Q（导师）：你说只保护"单个token可独立推导的"隐私——这种类型的隐私在实际场景中占多大比例？如果大部分隐私都不是这种类型，你这个系统的价值不就有限了？
-A：论文确实没量化这个比例。但它的思路是：SSN、信用卡号这些独立token是对手最容易利用的——拿到就能直接造成损害，不需要理解上下文。先解决最紧迫的部分，上下文语义级别的保护留给后续工作。
-
-Q（师弟）：如果攻击者知道用户是医生，能从"体检报告""诊断"这些词猜出信息吗？
-A：能。Prϵϵmpt只管NER标出来的token，上下文原封不动。"体检报告"这种非敏感词不会被净化，攻击者完全看得到。
--->
-
----
-layout: two-cols-header
----
-
-## 系统架构- 三个模块
-
-::left::
-
-**Configuration Manager**
-- 一次性注册：生成FPE密钥 $K_U$，设定隐私参数 $\epsilon$
-- 为每种token类型配置域和格式
-
-**Sanitizer**
-- 类型标注（NER，命名实体识别）→ 分类 → 按类别净化
-- Category I → FPE加密
-- Category II → mLDP加噪
-
-**Desanitizer**
-- 相同的NER标注 → 按类型反向操作
-- Category I → FPE解密（无损恢复）
-- Category II → 无法精确恢复，保持净化值
-
-::right::
-
-<img src="/image/Preempt/2f2a7f3969ce3f5d87bbee14b235a35b25c32acb2a9cb0d956f697afbc45d231.jpg" alt="Prϵϵmpt系统架构" class="w-full">
-
-<div class="text-center text-xs text-gray-500 mt-2">Figure 1: Prϵϵmpt 系统流程</div>
-
-<!--
-右边是系统架构图，流程很直接。
-
-流程很简单：先注册拿到密钥，然后prompt过一遍Sanitizer做净化，发给LLM，拿回响应后再过Desanitizer还原。整条链路里，LLM始终只看到净化后的东西。
-
-注意信任边界的位置——红色虚线左边是可信区域，右边的LLM是不可信的。Prϵϵmpt的所有操作都在左边完成，LLM只能看到净化后的内容。
-
-Desanitizer只要有密钥就能干活，不用记住之前处理过什么——这就是"无状态"的含义。
-
-## Q&A
-Q（导师）：Category II"无法精确恢复"——用户最后拿到的回答里数值是错的？偏差多大？
-A：对，Category II的值反净化后会有偏差。但mLDP保证偏差不会太大——大概率就在原值附近。比如年龄50变成48，退休建议基本不受影响。但如果是精确的税务计算，这2岁的差距可能导致税率档位不同，这种场景下确实有问题。
--->
-
----
-layout: default
----
-
-## 敏感 Token 的分类
-
-### Category I ($\tau_I$) — 响应只依赖格式
-
-LLM的输出只取决于token的格式（长度、字符集），不取决于具体值
-
-- SSN：055-46-6168 → 569-83-4469（仍然是9位数字+连字符格式）
-- 信用卡号：16位数字 → 另一个16位数字
-- 姓名、护照号、IP地址、电话号码、银行账号...
-
-**处理方式**：格式保留加密（FPE）→ 可无损解密恢复
-
-### Category II ($\tau_{II}$) — 响应依赖具体数值
-
-LLM需要基于token的实际数值进行计算或推理
-
-- 年龄：46 → 48（需要保持数值接近）
-- 薪资：500,000 → 485,000
-- 医疗数值、金融数据...
-
-**处理方式**：Metric Local DP (mLDP) → 加噪但保持接近
-
-<!--
-Prϵϵmpt的核心设计决策是把敏感token分成两类。
-
-Category I是"格式决定一切"的token。拿翻译任务举例：你让LLM把"My SSN is 055-46-6168"翻译成德语，LLM怎么处理SSN？它只需要知道这是一个SSN格式的字符串，然后原样保留。具体是哪9个数字，对翻译结果完全没有影响。所以这类token用格式保留加密就够了——密文和明文格式相同，LLM处理方式不变，解密后无损恢复。
-
-Category II是"数值本身有意义"的token。比如"我的年龄是46岁，推荐一个退休计划"——如果你把46改成200，LLM的回答就会完全不同。所以这类token不能任意替换，需要保持数值接近。Prϵϵmpt用metric差分隐私来处理：加噪但保证噪声不大，净化后的值和原始值相差不远。
-
-## Q&A
-Q（导师，可能打断）：Category I和Category II的分类是预定义的还是跟任务相关的？比如"年龄"在翻译里可以算Category I，但在退休建议里是Category II。
-A：好问题。论文里Category的划分是基于token类型的，由NER模型标注。但正如你说的，同一个token在不同任务里语义角色可能不同。论文的做法是保守地把Age归为Category II——即使在翻译任务里用mLDP处理Age，由于噪声很小，对翻译质量的影响也可忽略。代价是多消耗了一点隐私预算，但换来了跨任务的一致性。
--->
-
----
-layout: two-cols-header
----
-
-## 格式保留加密（FPE）
-
-::left::
-
-### 原理
-
-FPE是一种特殊的加密方案：密文和明文具有**相同格式**
-
-- 密钥生成 $K \gets G_\mathcal{F}(1^\kappa)$
-- 加密 $y \gets E_\mathcal{F}(K, N, x)$，其中 $N$ 是格式描述
-- 解密 $x \gets D_\mathcal{F}(K, N, y)$
-
-### 安全性
-
-- FPE在同格式的值域上做由密钥控制的置换：对手看到密文569-83-4469，无法判断它是加密产物还是真实SSN——因为所有合法SSN都是等可能的置换目标
-
-::right::
-
-### 示例
-
-| 类型 | 明文 | 密文 |
-|------|------|------|
-| SSN | 055-46-6168 | 569-83-4469 |
-| IP地址 | 76.217.83.75 | 97.183.64.35 |
-| 信用卡号 | 4532-1234-5678-9012 | 8917-6543-2109-3456 |
-| 姓名 | Kaiser Soze | Mwndxy Rtpq |
-
-- 格式完全相同，LLM按相同方式处理
-- 用户持有密钥，可以无损解密恢复
-- 整个过程确定性、无状态
-
-<!--
-FPE说白了就是在同格式的值空间上做置换。
-
-拿SSN举例，所有9位数字的集合是一个有限集。FPE在这个集合上定义了一个由密钥控制的双射——每个合法SSN映射到另一个合法SSN。没有密钥的人看到密文569-83-4469，无法判断它是加密产生的还是一个真实的SSN，因为两者格式完全相同。
-
-这个性质对Prϵϵmpt至关重要。LLM在处理净化后的prompt时，看到的仍然是格式正确的SSN、信用卡号、姓名，它的处理逻辑不会改变。翻译时SSN原样保留，RAG检索时信用卡号正常匹配，反净化时用密钥解密就能无损恢复。
-
-而且FPE是确定性的——同一个密钥下，同一个明文总是产生同一个密文。这意味着prompt中如果同一个SSN出现多次，净化后仍然是同一个值，保持了一致性。
-
-不过有一点值得注意——FPE的安全强度取决于格式空间有多大。SSN有10^9种可能值，安全性很好；但如果格式空间太小，比如性别只有M/F两个值，FPE就很弱了，因为随机置换的空间本身就那么点大。
-
-## Q&A
-Q（师弟）：FPE加密后姓名变成乱码，翻译成别的语言LLM会不会试图"翻译"这个名字？
-A：好问题。FPE保证的是格式一致，不是语义一致。如果LLM把"Mwndxy Rtpq"当成外国名字原样保留，那没问题。但如果LLM试图音译它（比如翻译成中文时），可能会产生奇怪的结果。实际实验中翻译任务的BLEU分数几乎不变，说明LLM通常会原样保留这类token。
-
-Q（师弟）：性别只有M/F两个值怎么办？
-A：论文没有显式讨论这个case，但逻辑上有几个选项：1）直接不保护（接受这个小空间的限制）；2）把性别归入Category II用mLDP处理；3）用redaction直接删除。具体选择取决于应用场景。
-
-Q（导师）：姓名加密成"Mwndxy Rtpq"，这明显不像真名。LLM不会被干扰吗？
-A：好问题。FPE保证的是格式一致——字母数量、大小写、空格位置都和原名一样。但语义上确实不像真名。实验结果显示LLM通常会把这种token当作外国名字原样保留或直接引用，翻译和问答任务的BLEU和STS分数都几乎不受影响。但如果LLM试图对名字本身做推理（比如"这个名字是哪个国家的"），就会出错。
--->
-
----
-layout: two-cols-header
----
-
-## Metric Local Differential Privacy (mLDP)
-
-::left::
-
-### 定义
-
-随机算法 $\mathcal{M}: \mathcal{X} \to \mathcal{Y}$ 满足 $\epsilon$-mLDP，当且仅当对任意 $x, x' \in \mathcal{X}$，任意输出子集 $\mathcal{O} \subseteq \mathcal{Y}$：
-
-$$\Pr[\mathcal{M}(x) \in \mathcal{O}] \leq e^{\epsilon \cdot d(x,x')} \cdot \Pr[\mathcal{M}(x') \in \mathcal{O}]$$
-
-- $d(x,x') = |x - x'|$：两个输入值之间的距离（如年龄差）
-- $\epsilon$：隐私参数（越小保护越强）
-- 含义：两个输入越像，输出分布越像，对手越难区分
-
-::right::
-
-### 直觉
-
-- 距离近的值对 → 更难区分（更强保护）
-- 距离远的值对 → 更容易区分（更弱保护）
-
-### 为什么选 mLDP 而不是标准 DP？
-
-标准DP对所有输入对提供相同强度的保护，但Prϵϵmpt的场景不需要这么强。比如保护年龄时：
-
-- 攻击者区分 46 和 47 → 应该很难
-- 攻击者区分 46 和 90 → 允许更容易
-
-mLDP正好匹配这个需求：释放大致信息（"中年"），保护精确值
-
-<!--
-接下来看mLDP，这是处理Category II token的核心工具。它和标准DP最大的区别就是距离感知。
-
-大家想一下，标准LDP要求什么？无论输入是什么，输出分布都差不多。也就是说年龄46和年龄90在对手眼里应该一样难区分——这个保护力度对Prϵϵmpt来说太强了，代价就是实用性会很差。
-
-这个公式用一句大白话说就是：两个输入越像，输出的分布就越像，对手就越难分辨它们。
-
-mLDP放松了这个要求。公式里多了一个 $d(x,x')$ 项，隐私损失和输入对的距离成正比。直觉上就是：你可以知道这个人"大概是中年"，但不能精确知道是46还是47。这个权衡在很多场景下是合理的——比如你问LLM退休建议，年龄差2岁对建议的影响很小，但年龄差40岁就完全不同了。
-
-mLDP的数学含义可以这么理解：$e^{\epsilon \cdot d(x,x')}$ 是允许的概率比上界。距离越大，上界越宽松，对手越容易区分。距离为0时，上界是1，理论上不可区分。
-
-## Q&A
-Q（导师）：如果攻击者多次观察同一用户的查询，能不能通过平均值推回真实年龄？
-A：理论上有这个风险。mLDP的保证是per-query的，不保证跨query的安全性。如果同一个用户的年龄在多次查询中被独立加噪，攻击者确实可以通过统计平均来缩小不确定性。论文的设计是per-session独立密钥用于FPE，但mLDP部分没有讨论跨session的组合攻击。这确实是一个需要关注的问题。
--->
-
----
-layout: default
----
-
-## mLDP 的两个关键性质
-
-### Property 1：原始值最可能
-
-$$\Pr[\mathcal{M}_\epsilon(x) = x] > \Pr[\mathcal{M}_\epsilon(x) = y], \quad \forall y \in [k]$$
-
-输入 $x$ 被映射到自身的概率最高——净化后的值"大概率就是原始值或者很接近"
-
-### Property 2：距离越近，概率越高
-
-$$|y_1 - x| < |y_2 - x| \iff \Pr[\mathcal{M}_\epsilon(x) = y_1] > \Pr[\mathcal{M}_\epsilon(x) = y_2]$$
-
-离原始值越近的输出，被采样到的概率越高——保证了净化值不会偏离太远
-
-**预算分配**：$t$ 个 Category II token 均分 $\epsilon$，每个分到 $\epsilon/t$。DP的组合性质保证：多次独立加噪的总泄露不超过各次之和，所以总损失 $\leq \epsilon$
-
-<!--
-mLDP机制有两个性质直接决定了Prϵϵmpt的实用性。
-
-第一个性质说白了就是：净化后的值大概率就是原始值本身。大多数时候，LLM看到的数值和真实值相同或非常接近。
-
-第二个性质更直觉：如果净化值不是原始值，那么离原始值越近的候选值被选中的概率越高。这两条合在一起保证了净化值的偏离是有限的、可控的。
-
-然后说说预算怎么分。其实很简单——如果prompt里有3个Category II token，总预算 $\epsilon$ 就均分成三份。为什么这样行？因为差分隐私有个组合定理，大意是说多次使用DP机制，总隐私损失不超过各次之和。所以每个token花 $\epsilon/3$，加起来不超过 $\epsilon$。
-
-但这个均分策略有时候太保守。比如"我的年龄是46，出生于1979年"——年龄和出生年份是函数依赖关系。Prϵϵmpt用Helper String $\Psi$ 来编码这种依赖：只对年龄加噪一次，出生年份由后处理推导，不消耗额外预算。
--->
-
----
-layout: default
----
-
-## Sanitization 算法流程
-
-**输入**：prompt $\rho$、用户密钥 $K_U$、总隐私预算 $\epsilon$
-
-### 处理步骤
-
-1. **类型标注**：用微调的 UniNER-7B-PII 做 NER，标注token类型和类别
-
-2. **预处理**：计算 Category II token 的数量 $t$，生成 Helper String $\Psi$ 编码token间的函数依赖
-
-3. **逐token净化**：
-   - 非敏感token ($\tau = \bot$)：原样保留
-   - Category I ($\tau_I$)：$\hat{\sigma} = E_\mathcal{F}(K_U, N_\tau, \sigma)$（FPE加密）
-   - Category II ($\tau_{II}$)：$\hat{\sigma} = \mathcal{M}_\epsilon(\sigma, \epsilon/t, k_\tau)$（mLDP加噪，$k_\tau$ 为该类型token的值域大小）
-
-4. **后处理**：用 $\Psi$ 执行函数依赖，确保相关token一致性 → 输出净化后的 $\hat{\rho}$
-
-<!--
-先过一遍NER标注。这里论文用的不是通用NER，而是专门针对隐私敏感实体微调过的UniNER。标注的输出不仅有类型（这是一个Age），还有类别（这个Age属于Category II）。
-
-第二步，预处理。统计Category II token的数量 $t$，用于后面分配预算。同时生成Helper String $\Psi$，这个字符串编码了token之间的依赖关系。
-
-第三步是核心——逐个token处理。非敏感的直接跳过，Category I用FPE加密，Category II用mLDP加噪。注意每个Category II token拿到的预算是 $\epsilon/t$，不是 $\epsilon$。
-
-第四步，后处理。根据 $\Psi$ 里编码的依赖关系，确保相关token的净化结果保持一致。比如年龄被噪声化成25岁，那出生年份就自动调整为2000年。
--->
-
----
-layout: default
----
-
-## 端到端示例
-
-**原始 prompt**
-
-> "Kaiser Soze is 50 years old and earns 500,000 per year. What is his ideal retirement plan?"
-
-**类型标注后**
-
-> "(Kaiser Soze, [Name]) is (50, [Age]) years old and earns (500,000, [Salary]) per year. What is his ideal retirement plan?"
-
-**净化后（发送给LLM）**
-
-> "**Mwndxy Rtpq** is **48** years old and earns **485,000** per year. What is his ideal retirement plan?"
-
-- Name → FPE加密（格式保留，但值完全不同）
-- Age 50 → mLDP加噪为 48（接近原值）
-- Salary 500,000 → mLDP加噪为 485,000
-
-**反净化**
-
-- LLM回答中的"Mwndxy Rtpq" → FPE解密 → "Kaiser Soze"
-- 数值类回答保持净化后的值（无法精确恢复，但偏差小）
-
-<!--
-用一个具体例子走一遍全流程。
-
-原始prompt里有三个敏感token：姓名Kaiser Soze是Category I，年龄50和薪资500,000是Category II。
-
-净化后，姓名变成了一串看起来像名字但完全不同的字符串——这是FPE的效果，格式保留但值变了。年龄从50变成48，薪资从500,000变成485,000——这是mLDP的效果，加了噪声但偏差不大。
-
-LLM收到的prompt看起来完全正常：一个人叫Mwndxy Rtpq，48岁，年薪485,000，问退休计划。LLM会正常回答。
-
-反净化时，响应中出现的"Mwndxy Rtpq"用FPE解密恢复成"Kaiser Soze"。而数值类的内容保持净化后的值——年龄和薪资有小幅偏差，但对退休建议的影响很小，因为48岁和50岁的退休方案本质上差不多。
-
-说白了，整个流程的精妙之处在于：LLM完全不知道自己在处理净化后的数据——净化后的prompt看起来完全正常。这和传统密码学方案需要修改LLM本身完全不同。
-
-## Q&A
-Q（导师）：mLDP有没有保证噪声一定不会太大？还是只是"大概率"不大？
-A：只是大概率。mLDP的Property 1和2说的是概率性的——原始值被选中的概率最高，离原始值越远概率越低。但理论上存在小概率事件把50变成200。不过概率随距离指数衰减，实际中极端偏差几乎不会发生。
--->
-
----
-layout: default
----
-
-## Helper String $\Psi$：处理 Token 间的依赖
-
-prompt中的多个敏感token之间可能存在函数依赖
-
-> "My age is X, I was born in Y. I am X years old."
-
-敏感token：$[Age: X]$、$[Year: Y]$、$[Age: X]$（重复）
-
-**不用 $\Psi$（默认策略）：** 预算均分为 $\epsilon/3$，三个token独立加噪
-
-- 可能出现不一致：age=25 但 birth year=1998（对不上）
-
-**用 $\Psi$（优化策略）：** $\Psi$ 编码依赖关系
-
-- 只对第一个 $X$ 施加 $\epsilon$-mLDP → $\hat{X}=25$
-- $\hat{Y}$ 由后处理推导：$2025-25=2000$
-- 第二个 $X$ 直接复用 $\hat{X}=25$
-
-**结果：** "My age is 25, I was born in 2000. I am 25 years old."
-
-- 内容一致、隐私预算不增加（DP后处理性质：出生年份由净化后的年龄推算，不再接触原始年龄，所以不消耗额外预算）
-
-<!--
-Helper String是Prϵϵmpt提升实用性的一个细节设计。
-
-默认情况下，Prϵϵmpt把预算均分给所有Category II token，然后独立加噪。但如果token之间有依赖关系，独立加噪会产生不一致的净化结果，LLM可能因此给出不合理的回答。
-
-$\Psi$的做法是：先找出哪些token是"源头"，只给源头加噪，其他的根据依赖关系算出来就行。这个推导属于后处理，由mLDP的后处理免疫性保证，不消耗额外隐私预算。
-
-实际使用中，$\Psi$ 可以是用户手动提供的，也可以用本地LLM自动推断。不提供 $\Psi$ 也不影响隐私保证，只是实用性可能下降。
--->
-
----
-layout: center
----
-
-# 理论分析
-
-<!--
-接下来看理论。大家最关心的肯定是两件事——到底泄露了多少？响应质量还行不行？
--->
-
----
-layout: default
----
-
-## 隐私保证
-
-### 隐私博弈 $\mathbf{G}_{\mathrm{PS},\mathcal{L}}^{\mathrm{pp}}$
-
-- 对手选择两个"骨架相同"的prompt $(\rho_0, \rho_1)$（非敏感部分、token类型、格式完全一样，只有敏感token的值不同）
-- 系统随机选一个净化后返回
-- 对手猜是哪个 → 优势 $\mathrm{Adv} = 2\Pr[\text{guess correct}] - 1$（Adv=0意味着对手等同于瞎猜）
-
-### 核心定理
-
-$$\mathbf{Adv}_{Pr\epsilon\epsilon mpt, \mathcal{L}}^{pp}(\mathcal{A}) \leq e^{l\epsilon} + \mathrm{negl}(\kappa)$$
-
-- $S$ 为两个prompt中**取值不同的** Category II token对集合，$l = \max_{(\sigma_0, \sigma_1) \in S} \{|\sigma_0 - \sigma_1|\}$
-- $\kappa$：FPE的安全参数（$\mathrm{negl}(\kappa)$ 可忽略）
-
-### 含义
-
-- Category I token 的隐私由FPE的计算安全性保证（$\mathrm{negl}(\kappa)$）
-- Category II token 的隐私由mLDP保证，且隐私损失与token间距离线性相关
-- NER错误可以在泄露函数 $\mathcal{L}$ 中建模，不影响已识别token的保护强度
-
-<!--
-隐私保证这块用了一个博弈模型，思路其实很直觉。
-
-对手能干什么？它可以选两个prompt让系统净化，然后猜返回的是哪个。
-
-但有个限制——两个prompt的"骨架"必须一样：非敏感部分、格式、token类型这些都得相同。为什么？因为如果连结构都不一样，对手一看就知道了，这不算真本事。系统随机选一个净化后返回，对手猜是哪个。如果对手的优势可以被控制，就说明净化是有效的。
-
-核心定理给出的上界是 $e^{l\epsilon}$ 加上一个可忽略项。$l$ 是两个prompt中Category II token的最大距离。直觉上，两个prompt的敏感token越接近，对手就越难区分——这恰好是mLDP的设计目标。
-
-FPE部分更强：对手的优势只有 $\mathrm{negl}(\kappa)$，本质上是计算不可区分的。
-
-关于NER的错误，论文也给了处理方式：如果NER漏检率是 $\lambda$，那可以在泄露函数里额外泄露 $\lambda\%$ 的敏感token来建模。已识别token的保护强度不受影响。
-
-## Q&A
-Q（导师）：你的隐私上界里 $l$ 是最大距离。如果对手故意选差距很大的prompt，bound就很松。什么参数下这个bound才有用？
-A：确实。当 $l$ 很大且 $\epsilon$ 不够小的时候，$e^{l\epsilon}$ 会很大，bound就松了。论文的想法是：mLDP本来就只保证"近的输入难以区分"，不保证所有输入都难以区分。实际中对手面对的是同一用户的多次查询，同类型token的值域范围有限（比如年龄在20-70之间），$l$ 不会太大，bound还是有意义的。
-
-Q（师弟）：$l=70$（年龄差70）时 $e^{70\epsilon}$ 岂不是很大？
-A：对，所以mLDP的保护是"距离敏感"的——距离近的保护强，距离远的保护弱。$l=70$时确实保护很弱，但这其实是设计目标：你本来就不需要让对手分不清20岁和90岁的人，你需要的是让对手分不清46岁和47岁的人。
--->
-
----
-layout: default
----
-
-## 实用性保证
-
-### Invariant Prompts（不变性提示）
-
-对于LLM的响应不依赖敏感token具体值的prompt，Prϵϵmpt的实用性损失**理论上为零**
-
-$$\underbrace{\mathbb{E}_f[Q(\rho, f(\rho))]}_{\text{未净化的回答质量}\;\alpha} = \underbrace{\mathbb{E}_{f,PS}[Q(\rho, D(K, f(\hat{\rho})))]}_{\text{净化→LLM→反净化的回答质量}\;\beta}$$
-
-其中 $Q$ = 质量评价函数，$f$ = LLM，$\hat{\rho}$ = 净化后prompt，$D$ = 反净化操作。$\alpha = \beta$ 说明质量无损失。
-
-- 典型场景：翻译（token类型全是 $\tau_I$，FPE无损恢复）
-- RAG中的格式查询也属于此类
-
-### 非不变性 Prompts
-
-**Lipschitz条件**（理论假设，非已证明性质）：如果LLM对输入的小扰动只产生小变化
-
-$$d_V(f(\rho), f(\hat{\rho})) \leq K \cdot d_V(\rho, \hat{\rho})$$
-
-那么实用性损失和净化扰动成正比——mLDP的小扰动特性保证损失可控（金融Q/A实验间接支持此假设在实践中大致成立）
-
-**符号计算**：如果LLM对敏感token执行的是确定性计算（如BMI = 体重/身高²），那么输出偏差有结构化的上界
-
-<!--
-实用性分析分两类prompt讨论。
-
-第一类，LLM的回答根本不在乎敏感token具体是什么——翻译就是最典型的。你把SSN从055换成569，翻译结果不会有任何变化。对这类prompt，理论上 $\alpha = \beta$，响应质量不下降。
-
-第二类是非invariant prompt——LLM需要用到敏感token的具体值。这时候需要额外条件。
-
-如果LLM有个好性质——输入动一点点，输出也只动一点点（数学上叫Lipschitz条件）——那实用性损失和扰动幅度成正比。mLDP的Property 1和2保证了扰动本身就小，所以损失可控。
-
-如果LLM对敏感token执行的是确定性的符号计算（比如算BMI），那输出偏差就完全由mLDP的噪声决定，可以精确量化。
-
-这两个条件覆盖了大部分实际场景。实验结果也验证了这一点。
-
-## Q&A
-Q（导师）：真实的LLM满足Lipschitz条件吗？有实证数据吗？
-A：论文没有给出LLM的Lipschitz常数的实证估计。这确实是一个理论假设——真实的LLM是离散的、概率性的，严格的Lipschitz条件不一定成立。但论文的实验结果间接支持了这个假设：在金融Q/A实验中，$\epsilon \geq 1.0$ 时中位误差只有4%，说明LLM对小扰动的输出变化确实是有界的。不过这只是实验观察，不是严格证明。
--->
-
----
-layout: default
----
-
-## 与 Strawman 方案对比
-
-### Redaction（删除）
-
-- 直接删掉所有敏感token
-- 隐私保护最彻底，但实用性几乎归零——LLM看到"My age is [REDACTED], suggest retirement plan"无法回答
-
-### Substitution（替换）
-
-- 用查找表替换敏感token
-- 问题：查找表大小随token数量线性增长，且每个用户需要独立表
-- **有状态**、不满足GDPR删除权、扩展性差
-
-### Suppression（抑制）
-
-- 将低位数字置零（如 123,000 → 120,000）
-- 隐私保证难以精确量化
-- 已被证明容易受攻击
-
-### LLM辅助混淆（如Papillon）
-
-- 用本地LLM生成代理查询
-- LLM的概率性质决定了**无法做严格隐私分析**
-- 实验中80%的长文本prompt仍然泄露了角色身份
-
-<!--
-论文对比了四种"直觉上可行但不够好"的方案。
-
-Redaction是最简单的——删掉就行。隐私倒是保住了，但实用性崩了。你让LLM帮你做退休规划，把年龄删了，它怎么给建议？
-
-Substitution比Redaction好一点，至少保留了值。但它需要查找表来反向恢复，每个用户都要维护自己的表，表的大小随token数量增长。这直接违反了无状态的设计目标。
-
-Suppression看起来也合理——把123,456改成120,000，大致信息保留了。但它没有形式化的隐私定义，你无法量化"到底泄露了多少"。而且已有文献证明这类ad-hoc方法容易被攻破。
-
-Papillon是最近的工作，用本地LLM生成不含敏感信息的代理查询。思路不错，但LLM是概率性的，你没法证明它一定不泄露。实验也验证了这一点——80%的长文本prompt还是泄露了角色身份。
-
-## Q&A
-Q（师弟）：为什么不直接删掉所有敏感信息，让LLM回答能回答的部分，最后再拼回去？
-A：这其实就是Redaction方案的变体。对翻译这种任务确实可行——删掉SSN，翻译其他部分，再把SSN原样拼回去。但问题是Category II的token删不了：你问退休建议但把年龄删了，LLM就没法回答了。而且"拼回去"这个操作需要精确对齐位置，在复杂的响应中容易出错。Prϵϵmpt用FPE的好处恰恰是不需要删除和拼接——净化后的prompt结构完整，LLM正常处理。
-
-Q（导师）：你说Papillon 80%泄露了角色身份——但Prϵϵmpt也不保护上下文语义，拿同样标准测Prϵϵmpt是不是也会泄露？
-A：会。这个80%的数据说的是上下文语义级别的泄露——只要故事情节足够独特，不管你怎么净化名字，LLM都能猜出来。Prϵϵmpt也一样防不住这个。区别在于Prϵϵmpt不claim保护这个层面，它只保护独立token。所以这不是Prϵϵmpt的bug，而是它的scope boundary。
--->
-
----
-layout: center
----
-
-# 实验评估
-
-<!--
-下面看实验。论文在四类任务上评估：翻译、RAG、长上下文Q/A、金融多轮Q/A。
--->
-
----
-layout: two-cols-header
----
-
-## 翻译任务
-
-::left::
-
-### 设置
-
-- 数据：WMT-14，每属性每语言各100个样本
-- 模型：GPT-4o、Gemini-1.5
-- NER：UniNER-7B-PII
-- 敏感属性：Name、Age、Money
-- 评价指标：BLEU分数
-
-### 结果分析
-
-- Prϵϵmpt的BLEU和未净化版本几乎相同
-- Name用FPE加密后翻译不受影响
-- Age和Money的mLDP噪声对翻译质量影响可忽略
-- 全面优于Papillon（尤其在Name属性上）
-
-::right::
-
-### BLEU 分数对比 (GPT-4o)
-
-<div class="text-sm">
-
-| 语言 | 属性 | Plain | Prϵϵmpt | Papillon |
-|------|------|-------|---------|----------|
-| 英→德 | Name | 0.287 | 0.278 | 0.175 |
-| 英→德 | Age | 0.243 | 0.231 | 0.135 |
-| 英→德 | Money | 0.217 | 0.200 | 0.153 |
-| 英→法 | Name | 0.432 | 0.419 | 0.290 |
-| 英→法 | Age | 0.480 | 0.479 | 0.409 |
-| 英→法 | Money | 0.294 | 0.279 | 0.299 |
-
+## 本次分享主线
+
+<div class="pre-lead mt-4">
+这篇论文可以先看成一个问题：<b>能不能在不改云端 LLM API 的前提下，先在本地降低 prompt 里敏感 token 的暴露风险。</b>
+</div>
+
+<div class="pre-grid3 mt-8">
+  <div class="pre-card pre-card--risk">
+    <div class="pre-card-title">为什么需要</div>
+    <p>推理阶段的 prompt 会直接交给云端 LLM。训练数据隐私保护管不到这一步。</p>
+  </div>
+  <div class="pre-card pre-card--brand">
+    <div class="pre-card-title">大致思路</div>
+    <p>先在用户本地找出敏感 token，再根据它在任务里的作用决定怎么处理。</p>
+  </div>
+  <div class="pre-card pre-card--proof">
+    <div class="pre-card-title">怎么判断</div>
+    <p>看三件事：保护范围有没有说清楚，回答会不会明显变差，能不能直接接到现有 LLM API 前面。</p>
+  </div>
+</div>
+
+<div class="pre-callout mt-8">
+这一页先只给路线：先讲问题，再讲设计，最后看实验和限制。具体机制和数据后面展开。
 </div>
 
 <!--
-第一组实验是翻译。翻译是invariant prompt的典型场景——LLM怎么翻译一个句子，和里面的名字、年龄具体是什么没有关系。
+这一页先把路线定下来。
 
-大家看右边的表格。GPT-4o英→德的数据：Name属性，未净化是0.287，Prϵϵmpt是0.278，差距0.009，基本在统计波动范围内。而Papillon只有0.175，差距明显。
+第一部分先讲问题。这里不是训练数据泄露，而是用户每次调用 LLM 时，prompt 本身就要交给服务端。这个输入里经常有真实数据。
 
-为什么翻译上效果这么好？大家想一下，翻译本身不在乎名字叫什么、年龄多少。Name和Money用FPE加密后格式不变，LLM翻译逻辑不受影响。Age虽然用了mLDP加了点噪声，但50变48对翻译结果几乎没有区别。所以翻译任务天然适合Prϵϵmpt的设计。
+第二部分讲方法。Prϵϵmpt 没有把整段 prompt 加密，也不是简单删掉敏感字段。它先在本地找出敏感 token，再判断这个 token 对当前任务有没有用，然后选择不同的处理方式。
 
-Papillon表现差的原因是它用本地LLM生成代理查询，这个过程会引入额外的语义变化，影响翻译质量。
+第三部分看实验和限制。我主要关心三个问题：第一，它到底保护哪些内容；第二，处理以后回答质量会不会掉；第三，它能不能作为一层预处理，接到现有 LLM API 前面。
 
-## Q&A
-Q（导师）：翻译不是对你最有利的场景吗？我更关心LLM真的需要用到数值的场景效果怎么样？
-A：确实，翻译是invariant场景，天然适合Prϵϵmpt。更有挑战性的是后面的金融Q/A——LLM需要做数值计算，$\epsilon=2.0$ 时中位误差2.44%。这个数字在估算场景下可以接受，但在精确计算场景下可能不够。
--->
 
----
-layout: two-cols-header
----
-
-## RAG + 长上下文 Q/A
-
-::left::
-
-### RAG 任务
-
-- 数值比较 + 事实检索两种场景
-- Context和Question联合净化，相同属性映射到相同token
-
-**结果：准确率 100%**
-
-- FPE保证格式一致性 → 匹配不受影响
-- mLDP保证数值接近 → 数值比较不受影响
-
-### 长上下文 Q/A
-
-- 数据：NarrativeQA，平均534词的摘要
-- 角色名用FPE净化
-- 评价指标：STS（语义文本相似度）
-
-::right::
-
-### STS 分数对比
-
-| 方法 | vs Plain | vs GT |
-|------|----------|-------|
-| Prϵϵmpt (GPT-4o) | **0.934** | 0.510 |
-| Papillon (GPT-4o) | 0.854 | 0.458 |
-| Prϵϵmpt (Llama-3) | 0.839 | 0.514 |
-
-- Prϵϵmpt在GPT-4o上STS达到0.934
-- 显著优于Papillon的0.854
-
-### 参考对比
-
-- 不反净化直接评估：STS降到0.523
-- 完全无关回答：STS约0.146
-- 说明0.934是一个很高的分数
-
-<!--
-第二组和第三组实验放在一起讲。
-
-RAG任务的结果非常干净——100%准确率。这符合理论预期：RAG中的事实检索本质上是模式匹配，FPE保证了格式不变，mLDP保证了数值接近，所以匹配和比较操作都不受影响。
-
-长上下文Q/A更有意思。这里测试的是LLM对长文本的理解和推理能力——不只是提取信息，还需要整合和推断。Prϵϵmpt用FPE净化角色名，然后让LLM基于净化后的摘要回答问题。
-
-GPT-4o上STS 0.934，意味着净化后的回答和未净化版本在语义上高度一致。参考一下：如果不做反净化，分数降到0.523；如果给一个完全无关的回答，分数大约0.146。所以0.934确实说明净化几乎不影响回答质量。
-
-Papillon在长文本上表现明显差一些，而且有一个严重问题：80%的prompt仍然泄露了角色身份。因为摘要来自维基百科，远端LLM可以直接识别出角色。
-
-## Q&A
-Q（导师）：RAG 100%准确率的样本量是多少？
-A：论文生成了若干个(Context, Question, Answer)三元组，具体数量在附录中。数量不算大，但100%的结果至少说明FPE和mLDP的设计在这类结构化查询上不会引入错误。
-
-Q（师弟）：如果故事情节本身很有辨识度（比如"一个男孩在魔法学校"），LLM能猜出是哈利波特。Prϵϵmpt也防不住吧？
-A：完全正确。Prϵϵmpt只净化了被NER标注为敏感的token（这里是角色名），但故事情节、场景描述这些上下文语义信息原样保留。如果上下文本身足以识别身份，Prϵϵmpt确实防不住。这就是论文保护边界的具体体现——也是Papillon在长文本上80%泄露率的根本原因。
--->
-
----
-layout: two-cols-header
----
-
-## 多轮金融 Q/A
-
-::left::
-
-### 设置
-
-- 数据：ConvFinQA——金融报告 + 多轮对话式数值推理
-- 所有数值（除年份）用mLDP净化
-- 评价指标：Relative Error、Prediction Consistency
-- 模型：GPT-4o
-
-### 观察
-
-- $\epsilon$ 越大（隐私越弱）→ 误差越小
-- $\epsilon = 2.0$ 时中位误差仅 2.44%
-- 75th百分位净化误差反而低于基线——可能是数据集偶然性（噪声改变了某些边界条件），不应视为噪声的系统性优势
-
-::right::
-
-### ConvFinQA 结果
-
-| $\epsilon$ | Rel. Error (Median) | Consistency (Median) |
-|---|---|---|
-| 0.1 | 0.4000 | 0.3661 |
-| 0.5 | 0.0776 | 0.1345 |
-| 1.0 | 0.0408 | 0.0736 |
-| 2.0 | 0.0244 | 0.0447 |
-| Base | 0.0000 | — |
-
-- 隐私和误差之间有清晰的权衡：$\epsilon$ 越大保护越弱但误差越小
-- $\epsilon \geq 1.0$ 时，中位误差降到4%以内（注：$\epsilon$ 的实际保护强度与值域有关，值域大时保证较松）
-
-<!--
-第四组实验是最有挑战性的——多轮金融Q/A。
-
-这个任务就不一样了——LLM真的需要对财务数据做计算：利润率、增长率、比较大小等。如果mLDP加的噪声太大，计算结果就会偏离。
-
-结果显示了一个清晰的趋势：$\epsilon$ 越大，中位误差越小。$\epsilon = 0.1$（强隐私）时中位误差是40%，确实不太可用；但 $\epsilon = 1.0$ 时降到4.08%，$\epsilon = 2.0$ 时只有2.44%。这个误差水平在金融分析场景下是可以接受的。
-
-一个有意思的发现是：在75th百分位，净化后的误差反而低于未净化基线。论文认为这可能是噪声改变了某些underspecified问题的数值条件，使LLM避开了原本的异常响应。但这不应被视为噪声的系统性优势——更可能是特定数据集上的巧合。
-
-## Q&A
-Q（导师）：$\epsilon=2.0$ 在DP社区算隐私保证比较弱的。sweet spot在哪？
-A：这是个好问题。在标准DP社区，$\epsilon=1.0$ 通常被认为是"合理的"上界。但mLDP和标准DP不完全一样——mLDP的 $\epsilon$ 是per-unit-distance的，实际隐私损失还要乘以距离 $d(x,x')$。对于年龄这种值域不大的token（比如20-70），$\epsilon=2.0$ 对应的实际隐私损失大约是 $e^{2 \times 50}=e^{100}$……确实很松。但如果距离小（差5以内），$e^{10}$ 也还不算太离谱。sweet spot取决于具体场景下用户能接受多大的误差和多大的隐私风险。
--->
-
----
-layout: two-cols-header
----
-
-## 设计选择的影响
-
-::left::
-
-### NER 模型对比
-
-论文微调了UniNER-7B-PII，在10个高风险类别上评估
-
-- **UniNER微调版**：大部分属性F1达到1.00
-- 显著优于通用模型（Llama-3、Gemma-2）
-- 在某些属性上甚至优于GPT-4.1和Gemini-2.5
-
-NER的性能直接影响Prϵϵmpt的实际效果——漏检的token无法被保护
-
-::right::
-
-### 加密格式的重要性
-
-对RAG事实检索任务（31个样本，GPT-4）：
-
-| 加密方式 | 准确率 |
-|---------|--------|
-| FPE（格式保留） | **100%** |
-| AES（格式不保留） | 70.97% |
-| 随机替换（错误格式） | 77.42% |
-
-- 格式保留是Category I token实用性的关键
-- AES把信用卡号变成随机字符串，LLM无法正常处理
-- 即使随机替换也不够——错误格式（5位ZIP→8位数字）干扰LLM判断
-
-<!--
-最后看两个设计选择的验证实验。
-
-第一个是NER。Prϵϵmpt的隐私保证和NER是正交的——NER漏掉的token不会被净化，但已识别token的保护强度不受影响。所以NER的性能决定了"实际上有多少敏感信息被保护了"。
-
-论文在UniNER基础上微调，在10个高风险类别上大部分达到F1=1.00。这比通用模型好很多：Llama-3在Password属性上只有0.238。NER是Prϵϵmpt的实际瓶颈——系统设计再好，NER漏了就没用。
-
-第二个是格式保留的重要性。这个实验直接验证了Category I的核心假设：LLM的响应只依赖格式。三种加密方式：FPE（格式保留）100%，AES（随机字符串）70.97%，随机替换（错误格式）77.42%。差距非常明显——格式不对，LLM就处理不好。
+Q&A 预案：
+Q：这是不是只是 PII 脱敏？
+A：不完全是。PII 指可以识别到个人的信息，比如姓名、证件号、手机号。普通打码通常只关心把敏感值藏起来；Prϵϵmpt 还要求处理后的 prompt 仍然能让 LLM 正常完成任务。具体差别后面讲分类和净化机制时再展开。
 -->
 
 ---
 layout: default
+class: pre
 ---
 
-## 综合对比
+## Prompt 隐私问题
 
-<div class="text-sm">
-
-| 方案 | 无状态 | 形式化隐私 | 高实用性 | 资源高效 |
-|------|--------|-----------|---------|---------|
-| **Prϵϵmpt** | ✓ | ✓ | ✓ | ✓ |
-| Papillon | ✗ | ✗ | ✓ | ✓ |
-| 替换方案 | ✗ | ✗ | ✓ | ✓ |
-| 密码学方案 (HE/MPC) | ✓ | ✓ | ✓ | ✗ |
-| DP文本加噪 | ✓ | ✓ | ✗ | ✗ |
-| DP嵌入加噪 | ✓ | ✓ | ✗ | ✓ |
-| DP Token加噪 | ✓ | ✓ | ✗ | ✓ |
-| DP文本改写 | ✓ | ✓ | ✗ | ✓ |
-
+<div class="pre-flow mt-7">
+  <div class="pre-node">用户 prompt<span>医疗、财务、身份信息</span></div>
+  <div class="pre-arrow"></div>
+  <div class="pre-node pre-node--risk">云端 LLM<span>提供商可见输入</span></div>
+  <div class="pre-arrow pre-arrow--risk"></div>
+  <div class="pre-node pre-node--risk">隐私泄露<span>推理阶段发生</span></div>
 </div>
 
-在论文作者的对比框架下，Prϵϵmpt是四个维度都满足的方案。代价：只保护独立token级别的隐私，上下文语义不管
+<div class="pre-grid2 mt-8">
+  <div>
+    <div class="pre-section-title">普通调用</div>
+    <div class="pre-example mt-3">请总结这份体检报告：姓名、身份号、诊断结果、保险信息...</div>
+    <ul class="pre-list">
+      <li>服务商处理请求时就能看到输入。</li>
+      <li>“不用于训练”不能解决输入可见问题。</li>
+    </ul>
+  </div>
+  <div>
+    <div class="pre-section-title">few-shot 调用</div>
+    <div class="pre-example mt-3">示例1：病历文本 → 抽取结果<br/>示例2：真实病历 → 抽取结果</div>
+    <ul class="pre-list">
+      <li>prompt 不只包含问题，还包含样本。</li>
+      <li>样本越真实，暴露面越大。</li>
+    </ul>
+  </div>
+</div>
+
+<div class="pre-cite">Prϵϵmpt · 关注 inference-time prompt privacy，而不是训练数据隐私。</div>
 
 <!--
-这张表就是整篇论文的核心卖点。说实话，我觉得这个设计策略是聪明的——不追求保护所有类型的隐私，而是把范围收窄到独立token，然后在这个范围内尽可能满足四个目标。
+这一页说背景。为什么 prompt 隐私要单独拿出来讲？
 
-大家看这张表。密码学方案什么都好就是太慢，DP方案有证明但实用性拉胯，Papillon能用但没有形式化保证。只有Prϵϵmpt全打勾。
+很多 LLM 隐私问题讨论的是训练阶段，比如模型会不会记住训练样本，能不能被别人抽出来。但真实使用云端 LLM 时，还有一个更直接的问题：prompt 要发给服务端。
 
-当然代价也很明确：上下文语义层面的隐私完全不管。这个取舍合不合理？我觉得在当前阶段是合理的——独立token的风险最直接，对手看到一个SSN就能造成实际损害，不需要理解上下文，先解决最紧迫的部分。但如果未来有人能把上下文语义也纳入保护且不显著损失实用性，那Prϵϵmpt的优势就不那么突出了。
+举个例子，医生把体检报告发给 GPT 帮忙总结，prompt 里可能有病人姓名、身份号、诊断结果和保险信息。服务商就算承诺“不用这批数据训练”，处理请求时仍然能看到输入。
+
+few-shot 会让这个问题更明显。few-shot 简单说，就是在 prompt 里放几条示例，让模型照着格式回答。麻烦在于，这些示例经常来自真实数据。做病历信息抽取时，用户可能直接贴几条真实病历给模型看。这样 prompt 里就不只是一个问题，而是几条完整样本。
+
+所以这篇论文看的是 inference-time prompt privacy，也就是推理阶段的输入隐私。它先不讨论模型以后会不会记住，而是问这一次调用里，服务端能不能少看到一些敏感内容。
+
+Q&A 预案：
+Q：few-shot 是什么？
+A：few-shot 就是在 prompt 里放少量示例，让模型根据这些示例理解任务格式。比如先给它两三条“病历文本 -> 提取结果”的例子，再让它处理新的病历。
+
+Q：为什么 few-shot 会放大隐私问题？
+A：因为示例往往不是凭空编的，而是从真实数据里拿的。原本一次 prompt 可能只包含一个用户的问题；加了 few-shot 后，prompt 里还会多出几条完整样本，里面可能带姓名、诊断、账号或其他隐私字段，暴露面就变大了。
+
+Q：服务商不训练用户数据，风险还大吗？
+A：风险还是在。这里担心的是请求内容在服务端可见，可能进入日志、审计、调试链路或内部访问范围。不训练只能解决训练污染，不能解决输入可见。
+-->
+
+---
+layout: default
+class: pre
+---
+
+## 现有方案不足
+
+<div class="pre-grid3 mt-6">
+  <div class="pre-card">
+    <div class="pre-card-title">密码学推理</div>
+    <p>HE / MPC 这类加密推理可以给强隐私，但代价太高。论文引用的方案在 BERT 上单次推理超过 16 分钟。</p>
+  </div>
+  <div class="pre-card">
+    <div class="pre-card-title">LLM 改写</div>
+    <p>本地 LLM 可以生成代理 prompt，但很难证明它一定不泄露敏感信息。</p>
+  </div>
+  <div class="pre-card">
+    <div class="pre-card-title">直接 DP 加噪</div>
+    <p>对整段文本或文本向量加差分隐私噪声，容易破坏语义、格式和长 prompt 的可用性。</p>
+  </div>
+</div>
+
+<div class="pre-split mt-8">
+  <div class="pre-panel pre-panel--risk">
+    <div class="pre-section-title">共同问题</div>
+    <p>它们大多把所有敏感信息当成同一类问题处理：要么全加密，要么全改写，要么全加噪。</p>
+  </div>
+  <div class="pre-panel pre-panel--proof">
+    <div class="pre-section-title">Prϵϵmpt 的做法</div>
+    <p>先问一个更小的问题：这个 token 在当前任务里到底起什么作用？然后再决定怎么处理。</p>
+  </div>
+</div>
+
+<!--
+接下来要回答一个问题：为什么不直接用已有方案？
+
+第一种是密码学推理，比如 HE 或 MPC。HE 是同态加密，MPC 是多方安全计算，简单说就是让服务端在看不到明文的情况下参与计算。这个方向隐私强，但成本太高。论文引用的对比里，BERT 级别的一次隐私推理已经超过 16 分钟。这里还是 BERT，不是 GPT 这类更大的生成式模型。
+
+第二种是本地 LLM 改写 prompt。它看起来轻，但很难给安全性结论。模型可能漏掉敏感字段，也可能把用户原意改坏。另外，它很难说清楚到底泄露了多少。
+
+第三种是直接加噪。DP 是差分隐私，核心是用随机噪声降低单个输入被识别出来的风险。但如果对整段文本或文本向量加噪，问题会变复杂。文本向量可以理解成模型内部使用的一组数字表示；向量被扰乱以后，语义、格式和长上下文都可能被破坏。
+
+所以这篇论文想避开两个极端：不想做成本很高的全加密推理，也不想只做没有证明的改写。它把问题收窄到 token 级字段，然后看不同 token 应该怎么处理。
+
+下一页先看这个分类的出发点：LLM 做任务时，并不总是需要看到敏感字段的真实值。
+
+Q&A 预案：
+Q：16 分钟这个数字是不是有点过时？
+A：具体数字会随着系统进步变化，但这里的结论不依赖这个精确值。全密码学推理和“在现有 LLM API 前做输入净化”不是一个成本档。
+-->
+
+---
+layout: default
+class: pre
+---
+
+## 关键观察
+
+<div class="pre-grid2 mt-5">
+  <div class="pre-card pre-card--brand">
+    <div class="pre-card-title">格式型敏感 token</div>
+    <div class="pre-example mt-3">My SSN is <b>055-46-6168</b>.</div>
+    <p class="mt-4">翻译或格式化时，LLM 只需要知道“这是一个 SSN 格式的字符串”。真实数字通常不重要。</p>
+    <div class="pre-tag">后面用可恢复机制处理</div>
+  </div>
+  <div class="pre-card pre-card--proof">
+    <div class="pre-card-title">数值型敏感 token</div>
+    <div class="pre-example mt-3">I am <b>50</b> and earn <b>500,000</b>.</div>
+    <p class="mt-4">退休建议、金融分析、医疗建议会用到数值本身。这里不能任意替换。</p>
+    <div class="pre-tag pre-tag--proof">后面用近似机制处理</div>
+  </div>
+</div>
+
+<div class="pre-callout mt-8">
+论文正式分类是 Category I / II；这里用“格式型”和“数值型”来对应它们对 LLM 的作用。
+</div>
+
+<!--
+这一页是论文的出发点。
+
+LLM 看到敏感字段时，不一定总是需要真实值。比如翻译 “My SSN is 055-46-6168”，模型主要需要知道这里是一个 SSN。真实号码是多少，对翻译结果基本没帮助。
+
+但年龄、薪资、账户余额不一样。50 岁和 20 岁的退休建议不会一样，年薪 50 万和 5 万的财务建议也不会一样。这些字段如果随便替换，模型回答的其实就不是原来的问题。
+
+所以这篇论文就把敏感 token 分成了两类：
+
+1. 格式型敏感 token：
+   后面会用“可恢复机制”去做处理。
+2. 数值型敏感 token：
+   后面会用“近似机制”去做处理
+
+
+Q&A 预案：
+Q：同一个字段在不同任务里作用会不会变？
+A：会。年龄在翻译里可能只是普通数字，在金融或医疗建议里就会影响推理。论文按实体类型做相对保守的分类，好处是实现简单，代价是有些任务会多处理一点。
+-->
+
+---
+layout: default
+class: pre
+---
+
+## 方案局限性
+
+<div class="pre-lead mt-4">
+Prϵϵmpt 不是完整的 prompt 隐私方案。它只处理 <b>NER 找到的敏感字段</b>，不理解整段内容是否敏感。
+</div>
+
+<div class="pre-grid3 mt-7">
+  <div class="pre-card pre-card--proof">
+    <div class="pre-card-title">能保护什么</div>
+    <p>姓名、SSN、信用卡号、年龄、薪资这类字段级信息。</p>
+  </div>
+  <div class="pre-card pre-card--risk">
+    <div class="pre-card-title">依赖什么</div>
+    <p>NER 必须先识别出来。漏检的字段不会进入净化流程，会原样发给云端。</p>
+  </div>
+  <div class="pre-card pre-card--risk">
+    <div class="pre-card-title">不保护什么</div>
+    <p>整句话透露出的敏感事实，例如健康状况、家庭处境、业务秘密。</p>
+    <div class="pre-example mt-3">My neighbor is in an abusive marriage.</div>
+  </div>
+</div>
+
+<div class="pre-callout mt-8">
+后面所有机制、证明和实验结果，都要放在这个范围内理解：字段被识别出来以后，系统怎么净化它。
+</div>
+
+<!--
+这一页讲局限性。放在系统流程之前，是为了先把论文的承诺范围讲清楚。Prϵϵmpt 有价值，但不能把它说成完整的 prompt privacy 方案。
+
+第一，它能保护的是字段级信息。比如姓名、SSN、信用卡号、年龄、薪资。这些字段单独拿出来就可能泄露隐私，所以论文先把目标收窄到这些 token。
+
+第二，它依赖 NER。NER 是 named entity recognition，中文叫命名实体识别。放在这篇论文里，可以简单理解成：先从 prompt 里找出姓名、证件号、年龄、金额这些敏感片段。只有被 NER 找出来的 token，后面才会进入加密或加噪流程。漏检的字段不会被保护。
+
+第三，它不处理整句话透露出的隐私。比如 “My neighbor is in an abusive marriage”，这句话没有身份号，也没有姓名，但这句话本身已经透露了一个敏感事实。NER 很可能找不到一个明确要替换的字段，Prϵϵmpt 也不会判断这句话该不该发给 LLM。
+
+所以这一页的结论很简单：它是一层字段净化器。它可以降低 token 级敏感值暴露，但不能替代内容审核、访问控制，也不能保证整段 prompt 都安全。后面讲系统流程、安全性证明和实验时，都要记住这个前提。
+
+Q&A 预案：
+Q：保护范围这么窄，还有价值吗？
+A：有，但不能把它说大。它处理的是最直接的一类泄露：身份字段和数值字段。实际使用时，可以把它放在现有 LLM API 前面，先处理这些字段；至于整段内容是否允许发送，还需要系统另外判断。
+-->
+
+---
+layout: default
+class: pre
+---
+
+## 系统流程
+
+<div class="pre-figure pre-figure--system mt-4">
+  <img src="/image/Preempt/2f2a7f3969ce3f5d87bbee14b235a35b25c32acb2a9cb0d956f697afbc45d231.jpg" alt="Prϵϵmpt system overview" />
+  <div class="pre-figcaption">Figure 1: 用户本地注册、净化 prompt、发送给不可信 LLM，再对响应反净化。</div>
+</div>
+
+<div class="pre-grid3 mt-5">
+  <div class="pre-stat"><div class="num">1</div><div class="lbl">Configuration Manager<br/>生成密钥和参数</div></div>
+  <div class="pre-stat"><div class="num">2</div><div class="lbl">Sanitizer<br/>NER 找敏感片段，再分类净化</div></div>
+  <div class="pre-stat"><div class="num">3</div><div class="lbl">Desanitizer<br/>恢复格式型 token</div></div>
+</div>
+
+<div class="pre-cite">系统图对应论文 Figure 1：客户端本地处理，LLM API 不需要修改。</div>
+
+<!--
+这一页看系统流程，对应原文 Figure 1。
+
+这个系统分成两个阶段看会更清楚：一次性的注册阶段，和每次调用 LLM 时的净化阶段。
+
+第一步是注册。Configuration Manager，也就是配置管理模块，会为用户生成格式保留加密用的密钥，也会初始化每类敏感 token 的格式空间。比如 SSN、信用卡号、电话号码，各自有自己的格式。用户还会指定数值加噪的隐私参数 epsilon，也就是控制噪声大小的参数。后面每一次净化，都会用这些本地配置。
+
+第二步是输入 prompt 以后，Sanitizer，也就是净化器，先做 type annotation，中文可以叫类型标注。论文里的 type annotator，也就是类型标注器，是用 NER 实现的。它先找出 prompt 里的敏感 token，再标注它属于哪一类：Category I 是格式型字段，Category II 是数值型字段。
+
+第三步是 pre-processor，也就是预处理器。它会做两件事：一是统计数值型 token 的数量，用来分配 epsilon；二是生成 helper string Ψ，可以理解成辅助字符串，用来记录 token 之间的函数依赖。函数依赖就是一个字段可以由另一个字段算出来，比如出生年份可以由当前年份和年龄推出来。年龄和出生年份不能分别乱加噪，否则净化后会前后矛盾。
+
+第四步才是逐个 token 净化。非敏感 token 不动。Category I 用格式保留加密，所以输出还是同格式字段；Category II 用带距离的本地差分隐私加噪，所以输出是接近原值的数值。之后 post-processor，也就是后处理器，会根据 Ψ 修正依赖字段，得到最终 sanitized prompt，也就是净化后的 prompt。
+
+第五步，客户端把 sanitized prompt 发给不可信 LLM。云端只看到净化后的输入，不需要改 LLM API。LLM 返回回答以后，客户端再跑 Desanitizer，也就是反净化器。格式型字段可以用加密密钥解回来；数值型字段默认不反解，因为它本来就是用近似值换隐私。
+
+所以这张图的重点是：敏感信息的识别、参数、加密、加噪和反净化都在客户端侧完成；云端 LLM 只参与普通推理。
+
+Q&A 预案：
+Q：如果不维护映射表，怎么恢复？
+A：格式型字段靠 FPE 密钥恢复，不需要表。数值型字段本来就不是为了恢复精确值，而是让 LLM 在近似值上完成任务，所以通常不会反解。
+-->
+
+---
+layout: default
+class: pre
+---
+
+## FPE：保留格式
+
+<div class="pre-split mt-5">
+  <div>
+    <div class="pre-section-title">它做什么</div>
+    <p>FPE（Format-Preserving Encryption）是一种加密方式：密文和明文属于同一个格式空间。</p>
+    <div class="pre-equation mt-4">SSN: 055-46-6168 → 569-83-4469</div>
+    <p class="mt-4">没有密钥的人看到的是另一个合法 SSN；有密钥的用户可以无损解密。</p>
+  </div>
+  <div>
+    <div class="pre-section-title">它适合什么</div>
+    <table class="pre-table mt-2">
+      <thead>
+        <tr><th>类型</th><th>原因</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>SSN / 信用卡号</td><td>格式比具体值重要</td></tr>
+        <tr><td>电话号码 / IP</td><td>结构稳定，便于保留</td></tr>
+        <tr><td>姓名</td><td>可替换成另一个姓名形态</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="pre-callout mt-7">
+FPE 主要保留格式：密文仍然像一个合法实体，LLM 不会因为输入形态被破坏而跑偏。
+</div>
+
+<!--
+先看格式型字段，对应的是 FPE。
+
+FPE 是 format-preserving encryption，中文可以说格式保留加密。普通加密会把 SSN 变成一串模型看不懂的字符；FPE 会把它变成另一个合法 SSN。长度、分隔符、字符集合都还在，只是具体值换了。
+
+为什么要保留格式？因为 LLM 会看输入形态。模型看到的仍然是一个像 SSN 的字段，翻译、摘要、格式化时就不容易跑偏。回答回来以后，用户本地可以用密钥解回来。
+
+这里也有边界。FPE 依赖格式空间足够大。如果字段只有 M/F 两个值，或者只是一个很小的枚举集合，加密后的可猜范围就很小。姓名也类似：形式可以保留，但姓名背后的文化、性别、地区信息可能会丢。
+
+Q&A 预案：
+Q：姓名加密后可能不像真实姓名，会不会影响 LLM？
+A：可能会。如果任务只需要把姓名当实体占位符，影响不大；如果任务要判断姓名来源、性别或文化背景，FPE 后这些语义就不可靠了。
+-->
+
+---
+layout: default
+class: pre
+---
+
+## mLDP：保留近似值
+
+<div class="pre-split mt-5">
+  <div>
+    <div class="pre-section-title">定义直觉</div>
+    <p>mLDP 是带距离的本地差分隐私：两个输入越接近，输出分布越接近；两个输入越远，允许更容易区分。</p>
+    <div class="pre-equation mt-4">Pr[M(x)∈O] ≤ e<sup>ε·d(x,x')</sup> · Pr[M(x')∈O]</div>
+  </div>
+  <div>
+    <div class="pre-section-title">为什么适合数值</div>
+    <ul class="pre-list">
+      <li>50 岁可以变成 48 岁，但不应该经常变成 200 岁。</li>
+      <li>500,000 薪资可以有小偏差，但不能变成完全无关的值。</li>
+      <li>ε 越大，噪声越小，隐私越弱，回答越准确。</li>
+    </ul>
+  </div>
+</div>
+
+<div class="pre-grid3 mt-7">
+  <div class="pre-stat"><div class="num proof">近</div><div class="lbl">原值附近更可能被采样</div></div>
+  <div class="pre-stat"><div class="num amber">ε</div><div class="lbl">控制隐私和误差的权衡</div></div>
+  <div class="pre-stat"><div class="num risk">偏</div><div class="lbl">无法保证精确恢复</div></div>
+</div>
+
+<!--
+再看数值型字段，对应的是 mLDP。
+
+数值不能像 SSN 一样随便换，因为模型可能真的要用它推理。mLDP 的做法是不暴露精确值，但给模型一个接近原值的值。比如 50 岁变成 48 或 52，模型大概率还能给出同一类建议。
+
+这里的 epsilon 是调节参数。epsilon 小，噪声大，隐私强一些，但回答更容易偏；epsilon 大，噪声小，回答更准，但隐私弱一些。
+
+注意它不是“每次都只改一点”。mLDP 只是让原值附近的结果更容易被采到，偶尔也可能偏得比较多。所以它适合近似值还能用的任务，不适合税务、剂量、合同金额这类必须精确计算的场景。
+
+Q&A 预案：
+Q：如果是税务或医疗剂量这种精确计算，mLDP 还能用吗？
+A：要谨慎。如果小误差也会改变决策，Prϵϵmpt 就不应该单独使用。它更适合建议、比较、粗粒度问答这类对近似值容忍度更高的场景。
+-->
+
+---
+layout: default
+class: pre
+---
+
+## 字段依赖
+
+<div class="pre-grid2 mt-5">
+  <div class="pre-card pre-card--risk">
+    <div class="pre-card-title">独立加噪的问题</div>
+    <div class="pre-example mt-3">My age is 25, I was born in 1998.</div>
+    <p class="mt-4">如果年龄和出生年份分别加噪，净化后的文本可能前后不一致。</p>
+  </div>
+  <div class="pre-card pre-card--proof">
+    <div class="pre-card-title">Helper String Ψ</div>
+    <div class="pre-example mt-3">Age = 25 → Year = 2000</div>
+    <p class="mt-4">只给源头值加噪，相关字段由后处理推导，保持一致且不增加隐私损失。</p>
+  </div>
+</div>
+
+<div class="pre-flow mt-8">
+  <div class="pre-node">原始依赖<span>age + birth year</span></div>
+  <div class="pre-arrow"></div>
+  <div class="pre-node pre-node--proof">只扰动源头<span>age → age'</span></div>
+  <div class="pre-arrow"></div>
+  <div class="pre-node">后处理推导<span>year' = now - age'</span></div>
+</div>
+
+<!--
+还有一个细节很容易出问题：同一个 prompt 里的敏感值经常有关联。
+
+比如一句话里同时有年龄和出生年份。如果年龄加一次噪声，出生年份再独立加一次噪声，净化后的文本可能前后对不上。模型看到这种矛盾，回答质量就会受影响。
+
+Prϵϵmpt 用 helper string Ψ 表达这种依赖关系。这里的 helper string 可以理解成一份本地辅助说明，告诉后处理器哪些字段之间有关联。做法是只扰动源头值，再用后处理推导相关值。比如先把年龄 25 扰动成 27，再根据当前年份推导出生年份。
+
+这里用到了差分隐私的后处理性质：只基于已经净化的值继续计算，不会额外增加隐私损失。简单说，后处理只看已经加噪后的结果，不再接触原始敏感值。它解决的不是隐私更强的问题，而是净化后的 prompt 不要自相矛盾。
+
+Q&A 预案：
+Q：Ψ 是怎么来的？
+A：论文给了两种来源：用户提供，或者用本地模型推断。Ψ 可以先理解成“字段依赖说明”。工程上比较麻烦的是第二种，依赖关系一旦推断错，后面的计算虽然还会继续跑，但回答就可能变差。
+-->
+
+---
+layout: default
+class: pre
+---
+
+## 安全性证明
+
+<div class="pre-proof-grid mt-4">
+  <div>
+    <div class="pre-section-title">Privacy game</div>
+    <ol class="pre-list">
+      <li>攻击者给出两个结构相同的 prompt：rho0 和 rho1。</li>
+      <li>系统随机选择其中一个，返回净化后的 prompt。</li>
+      <li>攻击者只能看净化结果，猜原始输入是哪一个。</li>
+    </ol>
+    <div class="pre-example mt-4">直觉：如果攻击者只能随机猜，说明净化结果没有明显暴露真实敏感值。</div>
+  </div>
+  <div>
+    <div class="pre-section-title">结论怎么读</div>
+    <div class="pre-equation mt-3">Adv<sub>Prϵϵmpt,L</sub><sup>pp</sup>(A) ≤ e<sup>lε</sup> + negl(κ)</div>
+    <ul class="pre-list mt-4">
+      <li><b>Adv</b>：攻击者比随机猜强多少。</li>
+      <li><b>e<sup>lε</sup></b>：数值扰动带来的可区分度。</li>
+      <li><b>negl(κ)</b>：FPE 被破解的概率，可以忽略。</li>
+    </ul>
+  </div>
+</div>
+
+<div class="pre-proof-steps mt-6">
+  <div class="pre-mini">
+    <div class="pre-mini-title">格式型字段</div>
+    <p>靠 FPE。没有密钥时，密文看起来像同格式的另一个值。</p>
+  </div>
+  <div class="pre-mini">
+    <div class="pre-mini-title">数值型字段</div>
+    <p>靠 mLDP。数值越接近，净化结果越难区分。</p>
+  </div>
+  <div class="pre-mini">
+    <div class="pre-mini-title">多个字段</div>
+    <p>逐个替换 token，证明多字段情况。</p>
+  </div>
+</div>
+
+<div class="pre-panel pre-panel--risk mt-5">
+  <div class="pre-section-title">证明边界</div>
+  <p>这个证明只覆盖已识别并净化的 token。NER 漏检、整句话语义泄露，都不在这个结论里。</p>
+</div>
+
+<!--
+这一页简单带过安全性证明。原文 4.6 做的是“基于猜测实验的隐私证明”，也就是让攻击者看净化结果，再猜原始输入是哪一个。不展开推导，只讲证明方案。
+
+这里的 game 很标准：攻击者给两个结构相同、泄露函数相同的 prompt。泄露函数就是论文允许系统暴露的信息，比如非敏感文本、token 类型和格式。系统随机净化其中一个，攻击者根据净化结果去猜是哪一个。公式里的 Adv 表示攻击者比随机猜强多少；右边的两项分别对应数值扰动的可区分度，以及 FPE 被破解的可忽略概率。
+
+证明路线也比较直接：格式型字段用 FPE，数值型字段用 mLDP；如果有多个敏感 token，就用逐个替换的证明方法，一个 token 一个 token 地把差异展开。所以这一页不用停太久，重点说明结论的边界：它只覆盖已经被 NER 找到并净化的 token。漏检字段、整句话本身透露出的语义，不在这个证明范围里。
+
+Q&A 预案：
+Q：这个安全性证明是不是等价于上下文隐私？
+A：不是。它只证明净化后的敏感 token 难以区分，不证明整段上下文安全。
+
+Q：e^{lε} 如果很大，这个 bound 还有意义吗？
+A：有，但它保护的是距离相近的数值；两个值差得越远，本来就越容易区分。
+-->
+
+---
+layout: default
+class: pre
+---
+
+## 实用性分析
+
+<div class="pre-grid2 mt-5">
+  <div class="pre-card pre-card--proof">
+    <div class="pre-card-title">不依赖真实值</div>
+    <p>翻译、格式化、引用等任务，LLM 对格式型 token 的具体值不敏感。</p>
+    <div class="pre-example mt-3">My SSN is 055-46-6168.</div>
+    <div class="pre-equation mt-4">净化 → LLM → 反净化 ≈ 原始回答</div>
+  </div>
+  <div class="pre-card pre-card--brand">
+    <div class="pre-card-title">依赖近似值</div>
+    <p>退休建议、金融问答、数值比较等任务，需要数值接近原值，但不总是需要完全精确。</p>
+    <div class="pre-example mt-3">I am 50 and earn 500,000.</div>
+    <div class="pre-equation mt-4">误差 ≈ 数值噪声带来的输出变化</div>
+  </div>
+</div>
+
+<div class="pre-callout mt-8">
+论文没有证明“输入小改动，回答就一定小改动”；它主要通过实验观察这种近似处理是否还能保住答案质量。
+</div>
+
+<!--
+安全性讲完以后，还要看可用性。这里可以分两类任务。
+
+第一类是不依赖真实值的任务。翻译最典型。SSN 换成另一个合法 SSN，句子怎么翻基本不受影响；最后再反净化，用户看到的还是原来的值。
+
+第二类依赖数值，但允许近似。比如退休建议、金融问答、数值比较。模型要知道大概年龄、大概金额，但很多情况下不需要完全精确到原值。
+
+论文这里的意思是：如果输入里的数值只是轻微变化，很多任务的回答也不应该完全变掉。比如 50 岁变成 48 岁，退休建议大概率还是同一类建议。
+
+Q&A 预案：
+Q：这能算对真实 LLM 的严格证明吗？
+A：不能。它只是说明这类近似处理为什么可能可用，真正是否影响答案，还要看翻译、RAG、长上下文 Q/A 和金融 Q/A 的实验。
+-->
+
+---
+layout: default
+class: pre
+---
+
+## 实验结果
+
+<div class="pre-split mt-4">
+  <div>
+    <table class="pre-table pre-table-lg">
+      <thead>
+        <tr>
+          <th>任务</th>
+          <th>结果</th>
+          <th>指标说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>翻译</td>
+          <td>BLEU 下降通常小于 0.02</td>
+          <td>BLEU：译文和参考译文的连续词片段相似度</td>
+        </tr>
+        <tr>
+          <td>RAG</td>
+          <td>准确率 100%</td>
+          <td>RAG：先检索 context，再基于 context 回答</td>
+        </tr>
+        <tr>
+          <td>长上下文 Q/A</td>
+          <td>Prϵϵmpt STS 0.934；Papillon 0.854</td>
+          <td>Papillon：代理改写基线；STS 越高，回答语义越接近</td>
+        </tr>
+        <tr>
+          <td>金融多轮 Q/A</td>
+          <td>ε=2.0 时中位相对误差 2.44%</td>
+          <td>相对误差：偏离原答案的比例；中位数：一批样本中间那个</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="pre-figure pre-figure--compact">
+    <img src="/image/Preempt/cf6083a196e2412af7adac2e45e6b9caed62d6634cdf7194d2f4004a863ab016.jpg" alt="Financial QA median relative error" />
+    <div class="pre-figcaption">Figure 2: 金融多轮 Q/A 中，ε 增大时中位相对误差下降。</div>
+  </div>
+</div>
+
+<!--
+实验我按四组结果讲，不逐个表格展开。
+
+第一组是翻译。指标是 BLEU，可以简单理解成译文和参考译文有多少连续词片段重合。格式型字段替换以后，BLEU 基本不变，很多配置下降小于 0.02。这和前面的判断一致：翻译通常不需要知道真实 SSN 或真实姓名。
+
+第二组是 RAG，论文报告准确率 100%。RAG 就是先检索 context，再基于 context 回答。这里的 question 是用户问题，context 是检索出来的参考材料。两者要一起净化，而且同一个敏感属性要保持一致；否则匹配关系会断。
+
+第三组是长上下文 Q/A。论文用 STS，也就是语义相似度，看两段回答意思有多接近。这里 Papillon 是对比基线，它的思路是先用代理模型改写 prompt，再把改写后的 prompt 交给云端模型。Prϵϵmpt 的 STS 是 0.934，Papillon 是 0.854。我会这样解读：至少在这组任务上，Prϵϵmpt 的回答更接近原始回答。
+
+第四组是金融多轮 Q/A，用的是 ConvFinQA。ConvFinQA 是一个围绕财报表格做多步数值推理的数据集，对数字更敏感。epsilon 等于 2.0 时，中位相对误差是 2.44%。相对误差就是回答和原答案差了多少，再除以原答案；中位数就是把所有样本误差排个序，取中间那个，避免被极端错误带偏。我会把这个结果理解成：噪声不太大时，回答还能接近原答案。但 ε=2.0 更偏可用性，不应该被讲成强隐私。
+
+Q&A 预案：
+Q：RAG 100% 样本量大吗？
+A：不能按生产结论理解。这个实验更像机制验证，说明联合净化不会天然破坏匹配关系。真实生产 RAG 还会有召回、权限、上下文选择和长尾实体问题。
+-->
+
+---
+layout: default
+class: pre
+---
+
+## NER 覆盖率
+
+<div class="pre-split mt-5">
+<div>
+<div class="pre-section-title">为什么 NER 关键</div>
+<ul class="pre-list">
+<li>NER 是 Named Entity Recognition，负责从 prompt 里找出姓名、年龄、金额等实体。</li>
+<li>只有被识别出来的敏感 token，后面的 FPE / mLDP 才会生效。</li>
+<li>漏检 token 不会被净化，会原样进入云端 LLM。</li>
+</ul>
+<div class="pre-panel pre-panel--risk mt-5">
+<div class="pre-section-title">论文结果</div>
+<p>UniNER 在翻译样本中识别约 96% 的唯一 PII 值；长上下文 Q/A 中识别约 92% 的唯一角色身份。</p>
+</div>
+</div>
+<div class="pre-figure">
+<img src="/image/Preempt/d5431b012fff1b3ba33f32935ab275f90639cbe35da0d492e0713cdbd5cf40fe.jpg" alt="English German BLEU with age privacy budget" />
+<div class="pre-figcaption">Figure 3a: 年龄作为敏感 PII 时，BLEU 随隐私预算 ε 变化。</div>
+</div>
+</div>
+
+<!--
+实验里有两个点需要单独拿出来讲。第一个是 NER。
+
+NER 是 named entity recognition，中文是命名实体识别。它负责从 prompt 里找出姓名、年龄、金额、证件号这些敏感片段。Prϵϵmpt 后面的 FPE 和 mLDP 都依赖这个入口。
+
+论文里 UniNER 的结果还可以。UniNER 是论文使用的实体识别模型。翻译样本中，它识别并净化了大约 96% 的唯一 PII 值；长上下文 Q/A 里，大约 92% 的唯一角色身份被净化。PII 就是 personally identifiable information，也就是可以识别到个人的信息。
+
+但这里不能只看 92% 和 96% 这两个数字。漏掉的那部分不会被后面的机制补救，会直接进入云端 LLM。换到医疗、金融、代码或企业内部文档，NER 的表现也可能变化。
+
+右边这张图是原文 Figure 3 的一部分。它看的是年龄净化时 BLEU 随 epsilon 变化。对翻译来说，年龄噪声本身不是主要问题；真正决定隐私覆盖面的，还是敏感字段有没有被识别出来。
+
+Q&A 预案：
+Q：NER 漏检会不会破坏形式化证明？
+A：对已经识别并净化的 token，机制的证明还在；但漏检 token 不受保护。论文用扩展泄露函数 L_NER 去刻画这个问题，也就是把“NER 会漏什么”写进模型里；这只是建模方式，不会让漏掉的字段变安全。
+-->
+
+---
+layout: default
+class: pre
+---
+
+## 格式保留
+
+<div class="pre-split mt-5">
+  <div>
+    <div class="pre-section-title">RAG 事实检索对比</div>
+    <table class="pre-table pre-table-lg mt-2">
+      <thead>
+        <tr><th>净化方式</th><th>准确率</th><th>含义</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>FPE</td><td>100%</td><td>保留原字段格式</td></tr>
+        <tr><td>AES</td><td>70.97%</td><td>普通加密，格式被破坏</td></tr>
+        <tr><td>错误格式随机替换</td><td>77.42%</td><td>看起来像替换，但不像原类型</td></tr>
+      </tbody>
+    </table>
+
+<div class="pre-callout mt-5">
+这里的结论不是“FPE 一定最好”，而是：LLM 会利用输入格式。把 SSN、日期、邮编这类字段变成不像原类型的字符串，会影响回答。
+</div>
+  </div>
+  <div class="pre-figure">
+    <img src="/image/Preempt/fc329362e1065749623dadf905c089e0f3a166b4c7c1e53623a6d75cb8dfdf11.jpg" alt="English French BLEU with age privacy budget" />
+    <div class="pre-figcaption">Figure 3b: ε 越大，数值噪声越小，翻译质量略有回升。</div>
+  </div>
+</div>
+
+<!--
+第二个注意点是格式。
+
+论文做了一个很直接的对比。同样是 RAG 事实检索，用 FPE 处理敏感字段，准确率是 100%；换成普通 AES，准确率掉到 70.97%；随机替换成错误格式，准确率是 77.42%。
+
+AES 是常见的对称加密，安全性没有问题，但密文不像原来的字段。原来是邮编、日期、信用卡号，AES 之后可能变成一串模型不认识的字符。错误格式替换也一样，字段看起来不再是原来的类型。
+
+这个实验给出的信息很直接：LLM 不只看语义，也看输入形态。SSN 像 SSN，日期像日期，邮编像邮编，模型才更容易按原任务处理。FPE 的价值就在这里：不是只把值藏起来，还保留模型能用的格式线索。
+
+右边这张图也是原文 Figure 3 的一部分。epsilon 越大，数值噪声越小，翻译质量略有回升。不过在翻译任务里这个趋势不强，因为翻译本来就不太依赖年龄的精确值。
+
+Q&A 预案：
+Q：为什么不用普通 AES？
+A：如果只看加密强度，AES 没问题；但给 LLM 用时，格式被破坏会影响任务。Prϵϵmpt 用 FPE，是为了让密文仍然像同类型字段，减少对回答质量的影响。
+-->
+
+---
+layout: default
+class: pre
+---
+
+## 方案对比
+
+<table class="pre-table pre-table-lg mt-5">
+  <thead>
+    <tr>
+      <th>方案</th>
+      <th>证明</th>
+      <th>可用性</th>
+      <th>无状态</th>
+      <th>主要问题</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Prϵϵmpt</td>
+      <td>有</td>
+      <td>高</td>
+      <td>是</td>
+      <td>只保护 token 级隐私</td>
+    </tr>
+    <tr>
+      <td>HE / MPC</td>
+      <td>强</td>
+      <td>理论上高</td>
+      <td>是</td>
+      <td>推理成本过高</td>
+    </tr>
+    <tr>
+      <td>替换表</td>
+      <td>弱</td>
+      <td>较高</td>
+      <td>否</td>
+      <td>映射表本身是风险</td>
+    </tr>
+    <tr>
+      <td>Redaction</td>
+      <td>直观</td>
+      <td>低</td>
+      <td>是</td>
+      <td>LLM 缺关键值无法回答</td>
+    </tr>
+    <tr>
+      <td>LLM 改写</td>
+      <td>弱</td>
+      <td>不稳定</td>
+      <td>依实现</td>
+      <td>可能漏泄露，难证明</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="pre-callout mt-6">
+论文里的对比要放在限定范围里看：token 级敏感信息，加上现有 LLM API。只看这个范围，Prϵϵmpt 的成本不高，回答也没有明显变差。
+</div>
+
+<!--
+前面讲完机制和实验，现在把它和几类替代方案放在一起看。
+
+Prϵϵmpt 不是全面更强。它适合的场景很具体：token 级敏感信息，以及现有 LLM API 前面的输入净化。
+
+HE 和 MPC 隐私强，但成本高。这里 HE 指同态加密，MPC 指多方安全计算，目标都是让服务端在不知道明文的情况下参与计算。直接遮盖就是删除或打码敏感值，普通替换则是把敏感值换成另一个占位值；这两种方法容易做，但模型可能缺少必要信息，或者系统要维护映射表。LLM 改写看起来轻，但容易漏，也很难说明到底泄露了多少。
+
+所以它的位置是在中间：比直接遮盖多保留一些可用信息，比 HE/MPC 更容易接入现有 API。代价也很明确：它只处理已经识别出来的 token 级信息。
+
+Q&A 预案：
+Q：如果只看隐私强度，Prϵϵmpt 比 HE/MPC 弱很多吧？
+A：是的。HE/MPC 保护得更强，但成本也高很多。Prϵϵmpt 不是要替代它们，而是解决一个更轻的场景：现有 LLM API 前面能不能先做一遍输入处理。
+-->
+
+---
+layout: default
+class: pre
+---
+
+## 主要局限
+
+<div class="pre-grid3 mt-6">
+  <div class="pre-card pre-card--risk">
+    <div class="pre-card-title">上下文语义不保护</div>
+    <p>如果故事情节、病情描述或业务背景本身足以泄露隐私，Prϵϵmpt 防不住。</p>
+    <div class="pre-example mt-3">“我的邻居正在遭受家庭暴力。”</div>
+  </div>
+  <div class="pre-card pre-card--risk">
+    <div class="pre-card-title">NER 决定覆盖率</div>
+    <p>漏检 token 会原样进入 LLM。换领域后 NER 性能可能下降。</p>
+    <div class="pre-example mt-3">手机号、邮箱、内部项目代号</div>
+  </div>
+  <div class="pre-card pre-card--risk">
+    <div class="pre-card-title">数值保护不是强 DP</div>
+    <p>mLDP 是距离敏感保护。数值距离大、重复查询多时，隐私保证会变弱。</p>
+    <div class="pre-example mt-3">48 和 50 更难区分；20 和 90 更容易区分。</div>
+  </div>
+</div>
+
+<div class="pre-panel mt-8">
+  <div class="pre-section-title">放在什么位置</div>
+  <p>Prϵϵmpt 适合接在 LLM API 前面，先处理 token 级敏感字段。放到 RAG 里，它只能补生成前这一段，检索隐私、访问控制和上下文语义保护还要另外做。</p>
+</div>
+
+<!--
+机制、实验和对比讲完以后，限制也要讲清楚。
+
+这篇论文做的是 prompt privacy 里的一个子问题：已经识别出来的敏感 token 怎么处理。这个点有价值，但不能把它说成完整的 prompt privacy 方案。
+
+第一，上下文语义不保护。如果 prompt 本身的描述已经暴露敏感事实，它不会拦。第二，NER 决定覆盖率。没识别出来的字段会直接发出去。第三，mLDP 是距离敏感保护，也就是数值越接近越难区分，不是让所有数值都不可区分。重复查询时，攻击者还可能通过多次观测缩小范围。
+
+所以我会把它放在生成前看：prompt 交给 LLM 之前，先处理最直接的一批敏感字段。它能补 RAG 生成侧的一段缺口，但检索隐私、访问控制和上下文语义治理还要单独做。
+
+Q&A 预案：
+Q：这篇论文最大的 weakness 是什么？
+A：最大的问题是保护范围。token 级字段处理得比较细，但上下文语义隐私基本没碰。其次是 NER，实际系统里只要识别漏了，后面的机制就没有机会生效。
+-->
+
+---
+layout: default
+class: pre
+---
+
+## 和 RAG 的关系
+
+<div class="pre-flow pre-flow-wide mt-6">
+  <div class="pre-node">用户查询<span>query</span></div>
+  <div class="pre-arrow"></div>
+  <div class="pre-node pre-node--proof">检索隐私<span>SSE / HE / DP</span></div>
+  <div class="pre-arrow"></div>
+  <div class="pre-node">检索上下文<span>context</span></div>
+  <div class="pre-arrow"></div>
+  <div class="pre-node pre-node--proof">生成前净化<span>Prϵϵmpt</span></div>
+  <div class="pre-arrow pre-arrow--risk"></div>
+  <div class="pre-node pre-node--risk">云端 LLM<span>answer</span></div>
+</div>
+
+<div class="pre-grid2 mt-8">
+  <div class="pre-card pre-card--proof">
+    <div class="pre-card-title">可借鉴</div>
+    <p>先判断字段作用，再选择处理方式。不同字段、不同查询类型不一定适合同一套隐私工具。</p>
+  </div>
+  <div class="pre-card pre-card--brand">
+    <div class="pre-card-title">不能替代</div>
+    <p>它不能保护检索阶段的查询向量，也不能控制上下文是否被允许进入 LLM。</p>
+  </div>
+</div>
+
+<!--
+最后回到开头的 RAG 隐私问题。
+
+RAG 可以拆成两段：前面是检索，后面是生成。SSE、HE、DP 检索这些工作，主要解决的是用户怎么在云端知识库里搜，同时不暴露查询。SSE 是可搜索加密，HE 是同态加密，DP 是差分隐私。Prϵϵmpt 不解决这部分。
+
+它处理的是下一步：检索结果和用户问题进入 LLM 之前，能不能先净化一遍。所以它不是可搜索加密的替代品。检索侧仍然要管 query、文本向量、访问权限和上下文选择。上下文选择指系统最终选择哪些检索内容交给模型。生成侧可以用它处理 SSN、姓名、账号、年龄、薪资这些字段。
+
+对我自己的 RAG 方案来说，可以直接借的是这个位置：检索阶段保护完以后，不应该默认把明文 context 直接交给 LLM。生成前还可以加一层本地净化，至少先处理 token 级敏感字段。
+
+Q&A 预案：
+Q：这篇论文和我们组可搜索加密的关系是什么？
+A：它不做密文检索，所以不是可搜索加密的替代。它补的是生成侧：检索时尽量不暴露查询，生成前再尽量不把敏感字段直接交给 LLM。
+-->
+
+---
+layout: default
+class: pre
+---
+
+## IEG 系统架构
+
+<div class="pre-figure pre-figure--architecture mt-4">
+  <img src="/image/Preempt/ieg-preempt-architecture.svg" alt="IEG Preempt privacy architecture" />
+  <div class="pre-figcaption">客户端负责检索和 Preempt 净化；云服务器厂商只接触净化后的 prompt/context。</div>
+</div>
+
+<!--
+这一页把前面的讨论落到 IEG 系统里。
+
+这里有四个实体：用户、客户端、IEG 数据库、云服务器厂商。用户不直接访问云端 LLM，而是把问题交给客户端。客户端是可信侧，负责两件事：第一，从 IEG 数据库检索相关 context；第二，把用户问题和 context 组合起来，在本地做 Preempt 净化。
+
+IEG 数据库也在可信侧。它提供业务数据和检索索引，但不应该把明文 context 直接发给云服务器厂商。这里的 context 指检索出来、准备交给 LLM 参考的上下文材料。图里红色虚线就是这个禁止路径：IEG 明文不能绕过客户端直接进云端。
+
+真正跨过隐私边界的，只有净化后的 prompt 和 context。云服务器厂商负责 LLM 推理，返回的也是基于净化输入生成的回答。客户端拿到回答以后，再做 desanitize，也就是把可恢复的字段还原。格式型字段可以恢复，数值型字段一般保持近似结果。
+
+所以这页想表达的不是“Preempt 解决所有隐私问题”。它解决的是生成前这一段：在 IEG 检索已经完成以后，不要把用户问题和数据库 context 的明文直接交给云厂商。检索权限、数据库访问控制、上下文是否允许进入 LLM，这些还是 IEG 系统自己要管。
+
+Q&A 预案：
+Q：云服务器厂商还能看到什么？
+A：它能看到净化后的 prompt/context、请求时间、模型调用元数据和模型输出。Preempt 只减少 token 级敏感值暴露，不隐藏调用行为本身。
+
+Q：IEG 数据库是不是完全不出可信侧？
+A：是的，这张图按这个目标设计。数据库明文不直接给云厂商；客户端只把检索后的 context 经过 Preempt 处理后再发给 LLM。
+-->
+
+---
+layout: default
+class: pre
+---
+
+## Q&A：概念
+
+<div class="pre-qa mt-4">
+  <div>
+    <div class="q">Q1：few-shot 是什么？</div>
+    <div class="a">few-shot 是在 prompt 里放几条例子，让模型照着例子的格式回答。例子如果来自真实数据，里面也可能带敏感字段。</div>
+  </div>
+  <div>
+    <div class="q">Q2：为什么 few-shot 会放大问题？</div>
+    <div class="a">因为 prompt 不再只是一个问题，还会带上几条完整样本。样本越真实，姓名、诊断、账号、金额这类字段越容易一起暴露。</div>
+  </div>
+  <div>
+    <div class="q">Q3：NER、BLEU、STS 分别是什么？</div>
+    <div class="a">NER 是命名实体识别，负责从文本里找姓名、证件号、年龄、金额这类片段；BLEU 衡量译文和参考译文的词片段重合；STS 衡量两段回答的语义相似度。</div>
+  </div>
+  <div>
+    <div class="q">Q4：ε 怎么理解？</div>
+    <div class="a">ε 是隐私和误差的调节参数。这里 ε 越大，mLDP 加的噪声越小，回答更准，但隐私更弱。</div>
+  </div>
+</div>
+
+<!--
+Q&A 可以先准备概念类问题。老师或同学如果不是做 NLP 或隐私的，很可能会先问这些词是什么意思。NLP 就是自然语言处理，主要研究怎么让系统处理文本。
+
+few-shot 可以解释得简单一点：就是在 prompt 里放少量示例，让模型学会任务格式。比如先给两三条“病历文本到抽取结果”的例子，再让模型处理新的病历。
+
+它会放大隐私问题，是因为这些示例经常来自真实数据。原来 prompt 里可能只有一个用户问题；加了 few-shot 后，还会多出几条完整样本，里面可能有姓名、诊断、账号、金额，暴露面自然变大。
+
+NER、BLEU、STS 可以用一句话解释。NER 是 named entity recognition，中文叫命名实体识别。这里不要讲成很抽象的 NLP 任务，直接说它负责从 prompt 里找姓名、证件号、年龄、金额这类片段。BLEU 看译文和参考译文有多少连续词片段重合；STS 看两段回答语义上有多接近。
+
+epsilon 的问题也要说清楚：epsilon 越大，回答越准，隐私越弱。不要把 ε=2.0 说成强隐私，它更偏向实用效果。
 -->
 
 ---
 layout: end
+class: pre
 ---
 
-# 谢谢！
+# 谢谢
 
-## 欢迎提问与讨论
-
-<br>
-
-### 核心判断
-
-"不是所有token都需要同一种保护" — 这个观察是Prϵϵmpt设计的出发点
-
-### 值得思考的问题
-
-开放问题：token级保护在什么场景下足够？什么场景下不够？
-
-<div class="mt-6 text-center text-sm text-gray-500">
-  <p>Amrita Roy Chowdhury et al. · arXiv 2504.05147</p>
+<div class="pre-lead mt-6">
+一句话总结：<b>Prϵϵmpt 把问题收窄到 token 级敏感信息，并把这层处理放在现有 LLM API 前面。</b>
 </div>
 
+<div class="pre-grid3 mt-8">
+  <div class="pre-stat"><div class="num">格式</div><div class="lbl">FPE 保持结构，可无损恢复</div></div>
+  <div class="pre-stat"><div class="num">数值</div><div class="lbl">mLDP 保留近似值，换取隐私</div></div>
+  <div class="pre-stat"><div class="num">限制</div><div class="lbl">不覆盖上下文语义泄露</div></div>
+</div>
+
+<div class="pre-cite mt-8">Amrita Roy Chowdhury et al. · Prϵϵmpt: Sanitizing Sensitive Prompts for LLMs · NDSS 2026 · CCF A</div>
+
 <!--
-分享到这里。
+最后收一下。prompt 隐私涉及的范围很宽，Prϵϵmpt 没有试图一次做完。它先只处理 prompt 里能被识别出来的敏感 token，这样问题会小很多，也更容易接到现有系统里。
 
-我觉得这篇论文最值得记住的判断是：不是所有敏感token都需要同一种保护方式。格式决定一切的token用FPE，数值有意义的token用mLDP——这个分类是整个系统能兼顾多个设计目标的基础。
+Prϵϵmpt 把范围收窄到 token 级敏感信息，然后按作用分开处理。格式型字段用 FPE，保留结构，也能恢复；数值型字段用 mLDP，放弃精确值，保留近似值。
 
-但这个方案也有明确的边界。它只保护独立token级别的隐私——对手看到一个SSN就能利用，Prϵϵmpt能防住。但如果隐私信息藏在上下文语义里呢？实验中80%的长文本prompt通过上下文就泄露了角色身份，这恰好是Prϵϵmpt不保护的部分。
+但限制也要一起记住：上下文语义泄露、NER 漏检、重复查询下的数值推断，这些还没有被解决。
 
-所以我想留给大家一个问题：在你们的研究场景里，独立token级别的保护够不够用？如果不够，接下来的方向可能是什么？
-
-谢谢大家，欢迎提问。
-
-## Q&A
-Q（导师）：你觉得这篇论文最大的weakness是什么？
-A：最大的weakness我觉得是保护范围太窄——80%的长文本光靠上下文就泄露身份了。然后NER也是个瓶颈，换个领域性能很可能掉。还有就是理论bound在值域大的时候很松，$e^{100}$ 这种数字基本没有意义。
-
-Q（导师）：这篇论文和我们组做的可搜索加密有什么关系？能不能借鉴？
-A：我觉得有两个借鉴点。第一，"分类然后用不同机制保护"的策略——在可搜索加密里，有些查询需要精确匹配（类似Category I），有些需要范围查询（类似Category II），可以分别用确定性加密和保序加密。第二，"无状态"的设计目标——我们的方案中如果能减少客户端维护的状态量，对部署和合规都有好处。
-
-Q（导师）：如果reviewer问你"为什么不直接用同态加密"，你怎么回答？
-A：同态加密确实能提供更强的隐私保证，但代价是不可接受的计算开销。论文引用的数据是BERT上16分钟/次推理，而Prϵϵmpt只需要本地做一次NER加一次加密，基本是瞬时的。更关键的是，同态加密需要修改LLM的推理流程，而Prϵϵmpt完全不需要——它只修改输入，LLM本身不用变。这个compatibility优势在实际部署中非常重要。
+所以这篇论文适合拿来补 RAG 生成前的隐私处理，但不能直接当成完整的 prompt privacy 方案。谢谢大家，欢迎提问。
 -->

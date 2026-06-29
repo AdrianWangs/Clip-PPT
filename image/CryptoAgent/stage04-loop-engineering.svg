@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 440" width="960" height="440">
+<style>
+text { font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Microsoft YaHei', 'Microsoft JhengHei', 'SimHei', sans-serif; fill: #20242f; }
+.label { font-size: 15px; font-weight: 700; }
+.small { font-size: 12px; fill: #5a6373; }
+.loopnode { font-size: 13px; font-weight: 700; }
+.cmod { font-size: 12.5px; font-weight: 700; }
+.cmods { font-size: 10.5px; fill: #5a6373; }
+.cap { font-size: 12px; fill: #7c6df2; font-weight:600; }
+.hdr { font-size: 13px; font-weight: 800; }
+</style>
+<defs>
+<linearGradient id="g-core" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3f2fe"/><stop offset="1" stop-color="#e7e6fc"/></linearGradient>
+<marker id="ar-loop" markerWidth="9" markerHeight="7" refX="7" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 Z" fill="#7c6df2"/></marker>
+<marker id="ar-red" markerWidth="9" markerHeight="7" refX="7.5" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 Z" fill="#e0533d"/></marker>
+<filter id="sh" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#2a3354" flood-opacity="0.10"/></filter>
+<filter id="sh-core" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#4f46e5" flood-opacity="0.15"/></filter>
+</defs>
+<rect width="960" height="440" fill="#ffffff"/>
+<text x="250" y="48" class="hdr" text-anchor="middle" fill="#4f46e5">设计一套 loop 去 prompt agent</text>
+<text x="250" y="70" class="small" text-anchor="middle">定义目标与验收，让系统自我迭代到完成</text>
+<path d="M 281.7,116.7 A 78,78 0 0 1 321.3,156.3" fill="none" stroke="#7c6df2" stroke-width="2.2" marker-end="url(#ar-loop)"/>
+<path d="M 321.3,219.7 A 78,78 0 0 1 281.7,259.3" fill="none" stroke="#7c6df2" stroke-width="2.2" marker-end="url(#ar-loop)"/>
+<path d="M 218.3,259.3 A 78,78 0 0 1 178.7,219.7" fill="none" stroke="#7c6df2" stroke-width="2.2" marker-end="url(#ar-loop)"/>
+<path d="M 178.7,156.3 A 78,78 0 0 1 218.3,116.7" fill="none" stroke="#7c6df2" stroke-width="2.2" marker-end="url(#ar-loop)"/>
+<rect x="206" y="91" width="88" height="38" rx="11" fill="#ffffff" stroke="#c8c5f6" stroke-width="1.5" filter="url(#sh)"/>
+<text x="250" y="115" class="loopnode" text-anchor="middle">目标</text>
+<rect x="324" y="169" width="96" height="38" rx="11" fill="#ffffff" stroke="#c8c5f6" stroke-width="1.5" filter="url(#sh)"/>
+<text x="372" y="193" class="loopnode" text-anchor="middle">Agent 执行</text>
+<rect x="202" y="247" width="96" height="38" rx="11" fill="#ffffff" stroke="#c8c5f6" stroke-width="1.5" filter="url(#sh)"/>
+<text x="250" y="271" class="loopnode" text-anchor="middle">验收 / 质检</text>
+<rect x="84" y="169" width="88" height="38" rx="11" fill="#ffffff" stroke="#c8c5f6" stroke-width="1.5" filter="url(#sh)"/>
+<text x="128" y="193" class="loopnode" text-anchor="middle">反馈</text>
+<circle cx="250" cy="188" r="26" fill="url(#g-core)" stroke="#c8c5f6" stroke-width="1.5" filter="url(#sh-core)"/>
+<text x="250" y="184" text-anchor="middle" font-size="12" font-weight="800" fill="#4f46e5">LE</text>
+<text x="250" y="198" text-anchor="middle" font-size="9" fill="#5a6373">loop</text>
+<rect x="158" y="318" width="184" height="40" rx="10" fill="#f1f9f5" stroke="#cdeadf" stroke-width="1.3"/>
+<text x="250" y="335" text-anchor="middle" font-size="12" font-weight="700" fill="#0c6b4f">State / Memory</text>
+<text x="250" y="351" text-anchor="middle" font-size="10.5" fill="#5a6373">已完成 / 下一步（对话之外）</text>
+<line x1="250" y1="294" x2="250" y2="316" stroke="#a4ddc9" stroke-width="1.6" stroke-dasharray="4,3" marker-end="url(#ar-loop)"/>
+<line x1="468" y1="92" x2="468" y2="360" stroke="#e8eaf1" stroke-width="1.4"/>
+<text x="700" y="48" class="hdr" text-anchor="middle" fill="#20242f">五块标准构件</text>
+<text x="700" y="70" class="small" text-anchor="middle">Claude Code 与 Codex 都已具备</text>
+<rect x="504" y="92" width="196" height="58" rx="11" fill="#ffffff" stroke="#e1e4ee" stroke-width="1.4" filter="url(#sh)"/>
+<rect x="504" y="92" width="5" height="58" rx="2.5" fill="#7c6df2"/>
+<text x="524" y="117" class="cmod" text-anchor="start">自动化</text>
+<text x="524" y="136" class="cmods" text-anchor="start">让循环自己找事做</text>
+<rect x="712" y="92" width="196" height="58" rx="11" fill="#ffffff" stroke="#e1e4ee" stroke-width="1.4" filter="url(#sh)"/>
+<rect x="712" y="92" width="5" height="58" rx="2.5" fill="#7c6df2"/>
+<text x="732" y="117" class="cmod" text-anchor="start">工作树</text>
+<text x="732" y="136" class="cmods" text-anchor="start">多 Agent 并行不互扰</text>
+<rect x="504" y="162" width="196" height="58" rx="11" fill="#ffffff" stroke="#e1e4ee" stroke-width="1.4" filter="url(#sh)"/>
+<rect x="504" y="162" width="5" height="58" rx="2.5" fill="#7c6df2"/>
+<text x="524" y="187" class="cmod" text-anchor="start">技能</text>
+<text x="524" y="206" class="cmods" text-anchor="start">SKILL.md 沉淀知识</text>
+<rect x="712" y="162" width="196" height="58" rx="11" fill="#ffffff" stroke="#e1e4ee" stroke-width="1.4" filter="url(#sh)"/>
+<rect x="712" y="162" width="5" height="58" rx="2.5" fill="#7c6df2"/>
+<text x="732" y="187" class="cmod" text-anchor="start">连接器</text>
+<text x="732" y="206" class="cmods" text-anchor="start">接 GitHub / 数据库</text>
+<rect x="504" y="232" width="196" height="58" rx="11" fill="#ffffff" stroke="#e1e4ee" stroke-width="1.4" filter="url(#sh)"/>
+<rect x="504" y="232" width="5" height="58" rx="2.5" fill="#7c6df2"/>
+<text x="524" y="257" class="cmod" text-anchor="start">子 Agent</text>
+<text x="524" y="276" class="cmods" text-anchor="start">生成者 + 验证者分离</text>
+<rect x="712" y="232" width="196" height="58" rx="11" fill="#fdf2ef" stroke="#f4cabd" stroke-width="1.5" filter="url(#sh)"/>
+<rect x="712" y="232" width="5" height="58" rx="2.5" fill="#e0533d"/>
+<text x="732" y="257" class="cmod" text-anchor="start" fill="#e0533d">密码学接入</text>
+<text x="732" y="276" class="cmods" text-anchor="start">多方互信处 → MPC / 审计</text>
+<rect x="60" y="382" width="840" height="44" rx="13" fill="#fafbfd" stroke="#e1e4ee" stroke-width="1.4" filter="url(#sh)"/>
+<rect x="60" y="382" width="6" height="44" rx="3" fill="#e0533d"/>
+<text x="92" y="409" class="small"><tspan fill="#e0533d" font-weight="700">信任从单点推到多方　</tspan>跨 Agent、跨工具、跨数据源长时间自主运行 → 联合计算 MPC / FHE，承诺 + 审计日志留可追溯证据。</text>
+</svg>

@@ -1,0 +1,19 @@
+model = "gpt-5.4"
+model_provider = "ttadk_app"
+
+[model_providers.ttadk_app]
+name = "ttadk_app"
+base_url = "https://llmbox-global.byteintl.net/"
+wire_api = "responses"
+
+  [model_providers.ttadk_app.http_headers]
+  X-Source = "ttadk"
+  X-Project-Root = "/Users/bytedance/Documents/Slidev-PPT/Clip"
+  X-Repo-Info = '{"github.com":{"AdrianWangs/Clip-PPT":"."}}'
+  X-TTADK-Launch-Id = "85fea8b3-3f4c-455f-be6f-5215f0c33056"
+
+  [model_providers.ttadk_app.auth]
+  command = "ttadk"
+  args = [ "get_params", "--sso", "sso" ]
+  timeout_ms = 5_000
+  refresh_interval_ms = 2_000_000

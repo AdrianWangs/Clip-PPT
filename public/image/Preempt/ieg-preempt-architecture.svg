@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 70 1080 470" width="1080" height="470">
+  <style>
+    text { font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Microsoft YaHei', 'Microsoft JhengHei', 'SimHei', sans-serif; }
+    .label { fill: #111827; font-size: 14px; font-weight: 700; }
+    .small { fill: #6b7280; font-size: 12px; }
+    .tiny { fill: #6b7280; font-size: 11px; }
+    .domain-label { fill: #374151; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; }
+    .step { fill: #111827; font-size: 12px; font-weight: 650; }
+  </style>
+  <defs>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#059669"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+  </defs>
+  <rect width="1080" height="560" fill="#ffffff"/>
+  <rect x="30" y="82" width="675" height="395" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4" stroke-dasharray="7,5"/>
+  <text x="48" y="106" class="domain-label">可信侧：用户设备 + IEG 数据</text>
+  <rect x="735" y="82" width="305" height="395" rx="10" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.4" stroke-dasharray="7,5"/>
+  <text x="753" y="106" class="domain-label">不可信侧：云服务器厂商</text>
+  <line x1="720" y1="84" x2="720" y2="477" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <rect x="681" y="112" width="78" height="22" rx="11" fill="#fef2f2" stroke="#fecaca"/>
+  <text x="720" y="127" text-anchor="middle" fill="#b91c1c" font-size="11" font-weight="700">隐私边界</text>
+  <rect x="58" y="205" width="145" height="112" rx="10" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5"/>
+  <circle cx="130" cy="235" r="13" fill="#dbeafe" stroke="#2563eb" stroke-width="1.2"/>
+  <path d="M 108,281 Q 108,252 130,252 Q 152,252 152,281" fill="#dbeafe" stroke="#2563eb" stroke-width="1.2"/>
+  <text x="130" y="300" text-anchor="middle" class="label">用户</text>
+  <text x="130" y="316" text-anchor="middle" class="tiny">提出问题 / 查看结果</text>
+  <rect x="255" y="125" width="365" height="235" rx="12" fill="#ffffff" stroke="#d1d5db" stroke-width="1.5"/>
+  <rect x="270" y="142" width="335" height="54" rx="8" fill="#f0fdfa" stroke="#99f6e4" stroke-width="1.4"/>
+  <rect x="270" y="142" width="335" height="17" rx="8" fill="#ccfbf1" stroke="none"/>
+  <circle cx="282" cy="151" r="3.4" fill="#ef4444" opacity="0.75"/>
+  <circle cx="294" cy="151" r="3.4" fill="#f59e0b" opacity="0.75"/>
+  <circle cx="306" cy="151" r="3.4" fill="#10b981" opacity="0.75"/>
+  <text x="438" y="176" text-anchor="middle" class="label">客户端</text>
+  <text x="438" y="192" text-anchor="middle" class="tiny">RAG 编排 / 本地可信执行</text>
+  <rect x="280" y="218" width="140" height="48" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+  <text x="350" y="239" text-anchor="middle" class="step">组合输入</text>
+  <text x="350" y="255" text-anchor="middle" class="tiny">question + context</text>
+  <path d="M 420,242 L 445,242" stroke="#7c3aed" stroke-width="1.4" fill="none" marker-end="url(#arrow-blue)"/>
+  <rect x="445" y="208" width="145" height="68" rx="8" fill="#faf5ff" stroke="#ddd6fe" stroke-width="1.4"/>
+  <text x="517" y="228" text-anchor="middle" class="step">Preempt</text>
+  <text x="517" y="246" text-anchor="middle" class="tiny">NER + 分类</text>
+  <text x="517" y="263" text-anchor="middle" class="tiny">FPE / mLDP 净化</text>
+  <rect x="305" y="294" width="255" height="42" rx="8" fill="#ecfdf5" stroke="#bbf7d0" stroke-width="1.2"/>
+  <text x="432" y="313" text-anchor="middle" class="step">Desanitizer</text>
+  <text x="432" y="329" text-anchor="middle" class="tiny">恢复格式型字段，数值保持近似结果</text>
+  <g transform="translate(370,424)">
+    <ellipse cx="0" cy="0" rx="86" ry="18" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+    <rect x="-86" y="0" width="172" height="62" fill="#dcfce7" stroke="none"/>
+    <line x1="-86" y1="0" x2="-86" y2="62" stroke="#86efac" stroke-width="1.5"/>
+    <line x1="86" y1="0" x2="86" y2="62" stroke="#86efac" stroke-width="1.5"/>
+    <ellipse cx="0" cy="31" rx="86" ry="18" fill="none" stroke="#86efac" stroke-width="0.8" opacity="0.65"/>
+    <ellipse cx="0" cy="62" rx="86" ry="18" fill="#bbf7d0" stroke="#86efac" stroke-width="1.5"/>
+    <text x="0" y="18" text-anchor="middle" class="label">IEG 数据库</text>
+    <text x="0" y="38" text-anchor="middle" class="tiny">业务数据 / 检索索引</text>
+    <text x="0" y="55" text-anchor="middle" class="tiny">不直接暴露给云厂商</text>
+  </g>
+  <rect x="790" y="174" width="205" height="176" rx="12" fill="#fff7ed" stroke="#fdba74" stroke-width="1.6"/>
+  <path d="M 840,222 C 828,222 819,214 819,203 C 819,193 827,185 837,185 C 842,174 854,168 867,171 C 875,159 895,158 905,170 C 922,168 936,180 936,196 C 948,198 957,207 957,219 C 957,233 946,242 932,242 L 842,242 C 829,242 820,234 820,222 Z" fill="#fed7aa" stroke="#ea580c" stroke-width="1.3"/>
+  <text x="893" y="274" text-anchor="middle" class="label">云服务器厂商</text>
+  <text x="893" y="294" text-anchor="middle" class="small">LLM API / 推理服务</text>
+  <rect x="817" y="314" width="152" height="24" rx="12" fill="#ffffff" stroke="#fdba74"/>
+  <text x="893" y="331" text-anchor="middle" fill="#9a3412" font-size="11" font-weight="700">只看净化版输入</text>
+  <path d="M 203,246 L 250,246" stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#arrow-blue)"/>
+  <rect x="212" y="220" width="62" height="18" rx="9" fill="#ffffff" opacity="0.96"/>
+  <text x="243" y="233" text-anchor="middle" fill="#2563eb" font-size="11" font-weight="700">原始问题</text>
+  <path d="M 255,296 L 203,296" stroke="#2563eb" stroke-width="1.8" fill="none" marker-end="url(#arrow-blue)"/>
+  <rect x="210" y="304" width="64" height="18" rx="9" fill="#ffffff" opacity="0.96"/>
+  <text x="242" y="317" text-anchor="middle" fill="#2563eb" font-size="11" font-weight="700">最终回答</text>
+  <path d="M 350,360 L 350,401" stroke="#059669" stroke-width="1.8" fill="none" marker-end="url(#arrow-green)"/>
+  <rect x="292" y="374" width="72" height="18" rx="9" fill="#ffffff" opacity="0.96"/>
+  <text x="328" y="387" text-anchor="middle" fill="#047857" font-size="11" font-weight="700">检索请求</text>
+  <path d="M 430,404 L 430,360" stroke="#059669" stroke-width="1.8" fill="none" marker-end="url(#arrow-green)"/>
+  <rect x="438" y="374" width="86" height="18" rx="9" fill="#ffffff" opacity="0.96"/>
+  <text x="481" y="387" text-anchor="middle" fill="#047857" font-size="11" font-weight="700">context 返回</text>
+  <path d="M 590,242 L 690,242 L 790,242" stroke="#2563eb" stroke-width="2.2" fill="none" marker-end="url(#arrow-blue)"/>
+  <rect x="635" y="216" width="112" height="18" rx="9" fill="#ffffff" opacity="0.96"/>
+  <text x="691" y="229" text-anchor="middle" fill="#2563eb" font-size="11" font-weight="700">净化 prompt/context</text>
+  <path d="M 790,326 L 675,326 L 560,326" stroke="#2563eb" stroke-width="1.9" fill="none" marker-end="url(#arrow-blue)"/>
+  <rect x="648" y="334" width="76" height="18" rx="9" fill="#ffffff" opacity="0.96"/>
+  <text x="686" y="347" text-anchor="middle" fill="#2563eb" font-size="11" font-weight="700">净化回答</text>
+  <path d="M 456,457 L 622,457 L 704,388" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="6,4" fill="none" marker-end="url(#arrow-red)"/>
+  <line x1="674" y1="418" x2="694" y2="438" stroke="#dc2626" stroke-width="2.2"/>
+  <line x1="694" y1="418" x2="674" y2="438" stroke="#dc2626" stroke-width="2.2"/>
+  <rect x="525" y="431" width="132" height="18" rx="9" fill="#ffffff" opacity="0.96"/>
+  <text x="591" y="444" text-anchor="middle" fill="#b91c1c" font-size="11" font-weight="700">IEG 明文不直连云端</text>
+  <g transform="translate(52,514)">
+    <line x1="0" y1="0" x2="38" y2="0" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <text x="48" y="4" class="tiny">LLM 请求 / 响应</text>
+    <line x1="168" y1="0" x2="206" y2="0" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
+    <text x="216" y="4" class="tiny">IEG 检索数据流</text>
+    <line x1="348" y1="0" x2="386" y2="0" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrow-red)"/>
+    <text x="396" y="4" class="tiny">禁止明文外发</text>
+  </g>
+</svg>
